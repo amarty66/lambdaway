@@ -1,5 +1,5 @@
 <?php 
-
+  session_start();
   define ( "WEBSITE",  "http://epsilonwiki.free.fr/lambdaway/" );
 	define ( "VERSION",  "{&lambda; way} v.20160411" );
 	define ( "PAGES",    "pages/" );
@@ -32,11 +32,9 @@
 	}
 
 	function isValidUser () {
-		session_start();
 		return (isset($_SESSION[WIKI_NAME]) && $_SESSION[WIKI_NAME]['isValidUser'] == true);
 	}
 	function sessionUser () {
-		session_start();
 		return (isValidUser())? $_SESSION[WIKI_NAME]['username'] : '';
 	}
 
@@ -402,7 +400,7 @@
 				while (!feof($fichier)) {
 					$ligne=fgets($fichier,4096);	// 82.255.57.40  |	1313145032
 					$tab=explode("|",$ligne);
-					if ($tab[1]>0) {
+					if (count($tab) >= 2 && $tab[1]>0) {
 						$tab_de_tab[$i][0]=$tab[0];	// IP 	: 82.255.57.40
 						$tab_de_tab[$i][1]=$tab[1];	// Date	: 1313145032
 						$i++;
