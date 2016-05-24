@@ -201,7 +201,7 @@
 		doLogs( 'save' );
 		$content = doControlPage( $_POST['content'] );
 		// save button is disabled if user is not logged, it should be test here too
-		if (!preg_match('/^(°|;|_|\{|\/)/', $content)) {
+		if (WITH_PASSWORDS && !preg_match('/^(°|;|_|\{|\/)/', $content)) {
 			header( "location: ?view=$page" );
 			return;
 		}
