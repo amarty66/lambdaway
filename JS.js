@@ -1,4 +1,4 @@
-// LAMBDAWAY | © alain marty | 2016/04/05
+// LAMBDAWAY | © alain marty | 2016/06/10
 
 var LAMBDATALK = (function() {
 
@@ -19,8 +19,11 @@ var eval = function( str ) {
 
 // 2) EVALUATIONS 
 var eval_special_forms = function(str) {
+    str = eval_requires(str);
     str = eval_apos(str);
     str = eval_quotes(str);
+    str = eval_delays(str); // on test
+    str = eval_macros(str); // on test
     str = eval_ifs(str);
     str = eval_lets(str);
     str = eval_lambdas(str);
@@ -34,6 +37,11 @@ var eval_forms = function( str ) {  // (public)
     if (g_debug) trace += index++ + ': ' + str + '\n';
   if (g_debug) console.log( trace );
   return str;
+};
+/////////////////////////////////////////////////////////////////  
+var eval_requires = function(str) {
+  while ( str !== ( str = form_replace( str, '{require ', eval_require ))) ;
+  return str
 };
 var eval_apos = function(str) {
   while ( str !== ( str = apo_replace(str, "'{", eval_apo ))) ;
@@ -59,24 +67,39 @@ var eval_lets = function(str, flag) {
   while ( str !== ( str = form_replace( str, '{let ', eval_let ))) ;
   return str
 };
+var eval_delays = function(str) {  // twinned with dict['force']
+  while ( str !== ( str = form_replace( str, '{delay ', eval_delay ))) ;
+  return str;
+};
+var eval_macros = function(str) {
+  while ( str !== ( str = form_replace( str, '{macro ', eval_macro ))) ;
+  for (var i=0; i<g_macros.length; i++)
+    str = str.replace( g_macros[i].one, g_macros[i].two );
+  return str;
+};
 
+/////////////////////////////////////////////////////////////////  
 var eval_leaf = function() {
   var f = arguments[1] || '', r = arguments[2] || '';
   return (dict.hasOwnProperty(f))?
-    dict[f].apply(null, [r]) : '('+f+' '+r+')' 
+    dict[f].apply(null, [r]) : '('+f+' '+r+')' ;
 };
+
 var eval_apo = function(s){
   s = eval_apos(s);
   return quote(s);
 };
+
 var eval_quote = function(s){
   s = eval_quotes(s);
   return quote(s);
 };
+
 var eval_if = function(s){
   s = eval_ifs( s );
   return '{when ' + quote(s) + '}'
 };
+
 var eval_lambda = function(s){  // side effect on g_lambda_num
   s = eval_lambdas( s );
   var index = s.indexOf('}'),
@@ -85,9 +108,17 @@ var eval_lambda = function(s){  // side effect on g_lambda_num
       name = 'lambda_' + g_lambda_num++; // see HELPER FUNCTIONS
   for (var reg_args=[], i=0; i < args.length; i++)
     reg_args[i] = RegExp( args[i], 'g');
+
   dict[name] = function() {
     var vals = supertrim(arguments[0]).split(' ');
-    return function(bod) {
+//  lambda's introspection added on 20160503
+    if (vals[0] === '2string') // display the lambda
+      return quote('{lambda {' + args.join(' ') + '} ' + body +'}');
+    else if (vals[0] === 'args') // display args
+      return quote(args.join(' '));
+    else if (vals[0] === 'body') // display body
+      return quote(body);
+    else return function(bod) {
       if (vals.length < args.length) {
         for (var i=0; i < vals.length; i++)
           bod = bod.replace( reg_args[i], vals[i] );
@@ -103,6 +134,7 @@ var eval_lambda = function(s){  // side effect on g_lambda_num
   };
   return name; 
 };
+
 var eval_def = function (s, flag) {
   flag = (flag === undefined)? true : false;
   s = eval_defs( s, false );
@@ -118,6 +150,7 @@ var eval_def = function (s, flag) {
     dict[name] = function() { return eval_forms(body) };
   return (flag)? name : '';
 };
+
 var eval_let = function (s) {
   s = eval_lets( s );
   s = supertrim( s );
@@ -139,6 +172,42 @@ var eval_let = function (s) {
   return '{{lambda {'+ one + '} ' + body + '} ' + two + '}';
 };
 
+var eval_require = function(page) { 
+  var xmlHttp = (navigator.appName.search('Microsoft')>-1)?
+    new ActiveXObject('MSXML2.XMLHTTP') : new XMLHttpRequest(); 
+  xmlHttp.open('GET', 'pages/'+page+'.txt', true);
+  xmlHttp.send(null);
+  xmlHttp.onreadystatechange = function() {	
+    if (xmlHttp.readyState == 4) {
+      var lib = '{div {@ style=\'display:none\'}' + 
+        decodeHtmlEntity( xmlHttp.responseText ) + '}';
+      var page_code = document.getElementById('page_textarea').value;
+      page_code = page_code.replace(/\{require .*?\}/g,'');
+      page_code = LAMBDATALK.eval( lib + page_code ).val;
+      document.getElementById('page_view').innerHTML = page_code;
+      return '';
+    }
+  };
+  return '';
+};
+
+var eval_delay = function(s) {
+  s = eval_delays( s );
+  return '{lambda {} ' + s + '}';
+};
+// g_macros = [] is postponed in helper functions
+var eval_macro = function(s) {
+  // s = eval_macros( s );
+  var index = s.indexOf('to'),
+      one = supertrim(s.substring(0, index)),
+      two = supertrim(s.substring(index+2));
+  one = RegExp( one, 'g' );
+  two = two.replace( /€/g, '$' ); // because of PHP conflicts with $
+  g_macros.push( {one:one, two:two } );
+  return '';
+};
+/////////////////////////////////////////////////////////////////  
+
 // 3) HELPER FUNCTIONS
 var g_debug = false;  // global used by eval_forms()
 var dict    = {};  // JS primitives + user functions 
@@ -147,6 +216,7 @@ var g_array = {};  // an object containing user defined arrays
 var g_lambda_num = 0; // global number for lambdas
 var g_cons_num   = 0; // global number for pair structs
 var g_array_num  = 0; // global number for array structs
+var g_macros = [];    // global macros added on 20160508
 
 var balance = function ( str ) {
   var strt    = str.match( /\{/g ), 
@@ -227,6 +297,12 @@ var apo_replace = function(str, symbol, func){
 var supertrim = function(str) {
   return str.trim().replace(/\s+/g, ' ');
 };
+var decodeHtmlEntity = function(str) {
+  // https://gist.github.com/CatTail/4174511
+  return str.replace(/&#(\d+);/g, function(match, dec) {
+    return String.fromCharCode(dec);
+  });
+};
 var doWikiLink = function ( m, nom ) { 
   // wikilinks alternatives to {a {@ src=""...}}
   if (nom.match( /\|/ )) { // [[nom|URL]]  -> <a href="URL">nom</a>
@@ -283,7 +359,11 @@ dict['lib'] = function () { // {lib} -> list the functions in dict
 };
 dict['eval'] = function() {  // {eval '{+ 1 2}}
   var s = arguments[0];
-  return eval(unquote(s))
+  return eval_forms(unquote(s)); // or eval(unquote(s)).val
+};
+dict['force'] = function() {  // twinned with delay
+  var s = arguments[0];
+  return eval_forms('{' + s + '}');
 };
 dict['apply'] = function() { // {apply + 1 2}
   var s = supertrim(arguments[0]).split(' '),
@@ -347,19 +427,31 @@ dict['and'] = function () { // (and (= 1 1) (= 1 2)) -> false
 // 4.3) MATHS
 dict['+'] = function(){       // {+ 1 2 3 ... n}
   var s = supertrim(arguments[0]).split(' ');
-  return s.reduce(function(x,y){return parseFloat(x)+parseFloat(y)})
+  if (s[0] == '') return 0; // {+}
+  else if (s.length == 1) return parseFloat(s[0]); // {+ 1}
+  else if (s.length == 2) return parseFloat(s[0])+parseFloat(s[1]);
+  else return s.reduce(function(x,y){return parseFloat(x)+parseFloat(y)})
 };
 dict['-'] = function(){       // {- 1 2 3 ... n}
   var s = supertrim(arguments[0]).split(' ');
-  return s.reduce(function(x,y){return x-y })
+  if (s[0] == '') return 0; // {-}
+  else if (s.length == 1) return -s[0]; // {- 1}
+  else if (s.length == 2) return s[0]-s[1];
+  else return s.reduce(function(x,y){return x-y })
 };
 dict['*'] = function(){       // {* 1 2 3 ... n}
   var s = supertrim(arguments[0]).split(' ');
-  return s.reduce(function(x,y){return x*y })
+  if (s[0] == '') return 1; // {*}
+  else if (s.length == 1) return s[0]; // {* 1}
+  else if (s.length == 2) return s[0]*s[1];
+  else return s.reduce(function(x,y){return x*y })
 };
 dict['/'] = function(){       // {/ 1 2 3 ... n}
   var s = supertrim(arguments[0]).split(' ');
-  return s.reduce(function(x,y){return x/y })
+  if (s[0] == '') return 1; // {1}
+  else if (s.length == 1) return 1/s[0]; // {/ 2}
+  else if (s.length == 2) return s[0]/s[1];
+  else return s.reduce(function(x,y){return x/y })
 };
 dict['%']  = function() { 
   var args = supertrim(arguments[0]).split(' '); 
@@ -396,11 +488,15 @@ dict['date'] = function () {
 dict['serie'] = function () { // {serie start end step}
   var args = supertrim(arguments[0]).split(' ');
   var start = parseFloat( args[0] ),
-      end = parseFloat( args[1] ),
-      step = parseFloat( args[2] || 1 );  
-  if (start >= end) { var temp = start; start = end; end = temp; }
-  for (var str='', i=start; i<=end; i+= step)
-    str += i + ' ';
+      end   = parseFloat( args[1] ),
+      step  = parseFloat( args[2] || 1),
+      str   = '';
+  if (step == 0) return start;  
+  step = Math.abs(step);
+  if (start < end)
+    for (var i=start; i<=end; i+= step) { str += i + ' '; }
+  else if (start > end)
+    for (var i=start; i>=end; i-= step) { str += i + ' '; }
   return str.substring(0, str.length-1);
 };
 dict['map'] = function () { // {map func serie}
@@ -453,25 +549,38 @@ dict['substring'] = function() { // {substring i0 i1 some text}
 dict['length'] = function () { // {length a b c d}
   var args = supertrim(arguments[0]).split(' '); // [a,b,c,d]
   return args.length;
-}
+};
 dict['first'] = function () { // {first a b c d}
   var args = supertrim(arguments[0]).split(' '); // [a,b,c,d]
   return args[0];
-}
+};
 dict['rest'] = function () { // {rest a b c d}
   var args = supertrim(arguments[0]).split(' '); // [a,b,c,d]
   return args.slice(1).join(' ');
-}
+};
 dict['last'] = function () { // {last a b c d}
   var args = supertrim(arguments[0]).split(' '); // [a,b,c,d]
   return args[args.length-1];
-}
+};
 dict['nth'] = function () { // {nth n a b c d}
   var args = supertrim(arguments[0]).split(' '); // [a,b,c,d]
   return args[args.shift()];
-}
+};
+// added 20160514
+dict['replace'] = function () { // {replace one by two in text}
+  var str = supertrim(arguments[0]); // one by two in text
+  var index = str.indexOf('by');
+  var one = str.substring(0,index).trim();
+  str = str.substring(index+2).trim();
+  index = str.indexOf('in');
+  var two = str.substring(0,index).trim().replace(/€/g,'$');
+  str = str.substring(index+2).trim();
+  str = str.replace( RegExp(one,'g'), two );
+  return str;
+};
 
 // 4.5) ARRAYS  new, array?, disp, length, nth, last, push, pop
+dict['array'] =                   // alias added on 20160510
 dict['array.new'] = function () { // {array.new 12 34 56 78} -> array_123
   var args = supertrim(arguments[0]);
   var name = 'array_' + g_array_num++;
@@ -519,6 +628,12 @@ dict['array.pop'] = function () { // {array.pop z}
   var args = arguments[0].trim(); // z
   return g_array[args].pop();
 };
+// tested on 2016/05/29
+dict['array.set!'] = function () { // {array.set! z i val}
+  var args = supertrim(arguments[0]).split(' '); // [z,i,val]
+  g_array[args[0]][args[1]] = args[2];
+  return args[0];
+};
 
 // 4.6) CONS CAR CDR cons.disp list.new, list.disp
 dict['cons'] = function () { // {cons 12 34} -> cons_123
@@ -551,6 +666,7 @@ dict['cons.disp'] = function () { // {cons.disp {cons a b}}
   return r_cons_disp( args );
 };
 
+dict['list'] =                   // alias added on 20160510
 dict['list.new'] = function () { // {list.new 12 34 56 78} -> cons_123
   var args = supertrim(arguments[0]).split(' '); // [12,34,56,78]
   var r_list_new = function (arr) {
@@ -676,32 +792,29 @@ dict['style'] = function (){ // {style  quote(CSS) }
 dict['iframe'] = function() { // {iframe {@ src=".." height=".." width=".."}}
   var args = arguments[0];
   // comment the two following lines to allow external scripts 
-  if (args.match( 'http://' )) // try to prevent cross_scripting
+  if (args.match( 'http://' )) // against cross_scripting but not https://
     return 'Sorry, external sources are not authorized in iframes!';
   var attr = args.match( /@@[\s\S]*?@@/ ); 
   if (attr == null)  return 'oops';
   attr = attr[0].replace(/^@@/, '').replace(/@@$/, ''); // clean attr
   return '<iframe ' + attr + ' ></iframe>';
 }; 
-dict['require'] = function() {       // {require lib_name}
-  var page = supertrim(arguments[0]), xmlHttp;
-  var xmlHttp = (navigator.appName.search('Microsoft')>-1)?
-  new ActiveXObject('MSXML2.XMLHTTP') : new XMLHttpRequest(); 
-  xmlHttp.open('GET', 'pages/'+page+'.txt', true);
-  xmlHttp.send(null);
-  xmlHttp.onreadystatechange = function() {	
-    if (xmlHttp.readyState == 4) {
-      var lib = '{div {@ style=\'display:none\'}' 
-                + xmlHttp.responseText + '}';
-      var page_code = document.getElementById('page_textarea').value;
-      page_code = page_code.replace(/\{require .*?\}/g,'');
-      document.getElementById('page_view').innerHTML =
-               LAMBDATALK.eval( lib + page_code ).val;
-      return '';
-    }
-  };
-  return '';
+/*
+dict['youtube'] = function () {
+  var args = supertrim(arguments[0]);
+  var attr = args.match( /@@[\s\S]*?@@/ );
+  if (attr == null) return 'waiting for src, width, height';
+  args = args.replace( attr[0], '' ).trim(); // extract attributes
+  attr = attr[0].replace(/^@@/, '').replace(/@@$/, ''); // clean attributes
+  var u = attr.match( /src\s*=\s*"(.*?)"/ );
+  var w = attr.match( /width\s*=\s*"([\d]+)"/ );
+  var h = attr.match( /height\s*=\s*"([\d]+)"/ );
+  u = (u !== null)? 'https://www.youtube.com/embed/' + u[1] : ''; 
+  w = (w !== null)? w[1] : 580;
+  h = (h !== null)? h[1] : 315;
+  return '<iframe src="'+u+'" width="'+w+'" height="'+h+'" frameborder="0"></iframe>';
 };
+*/
 
 // 4.8) OTHERS
 // _ulxx|_olxx are alternatives to {ul {li ...}...} and {ol {li ...}...}
@@ -856,6 +969,7 @@ return {
   doSave:doSave,
   doCancel:doCancel
 }
+
 })();	// end of LAMBDATANK
 
 //  TOC TABLE OF CONTENT
@@ -927,14 +1041,14 @@ var beginDrag = function ( elementToDrag, event ) {
   event.stopPropagation();
   event.preventDefault();
   
-  function moveHandler ( event ) {
+  function moveHandler( event ) {
     x = event.clientX;
     y = event.clientY; if (y < ymin) y = ymin;  // top window < ymin  
     elementToDrag.style.left = (x - deltaX) + "px";
     elementToDrag.style.top  = (y - deltaY) + "px";
     event.stopPropagation();
   }
-  function upHandler ( event ) {
+  function upHandler( event ) {
     document.removeEventListener( "mouseup", upHandler, true );
     document.removeEventListener( "mousemove", moveHandler, true );
     event.stopPropagation();
@@ -1075,15 +1189,14 @@ var SHOW = (function() {
 var build = function () {
   var attr = arguments[0].match( /@@[\s\S]*?@@/ );
   if (attr == null) return 'waiting for src, width, height, title';
-  h = attr[0].match( /height\s*=\s*"([\d]+)"/ );
+  var h = attr[0].match( /height\s*=\s*"([\d]+)"/ );
+  var w = attr[0].match( /width\s*=\s*"([\d]+)"/ );
+  var s = attr[0].match( /src\s*=\s*"(.*?)"/ );
+  var t = attr[0].match( /title\s*=\s*"(.*?)"/ );
   h = (h !== null)? h[1] : 100;
-  w = attr[0].match( /width\s*=\s*"([\d]+)"/ );
   w = (w !== null)? w[1] : 300;
-  s = attr[0].match( /src\s*=\s*"(.*?)"/ );
   s = (s !== null)? s[1] : 'data/happydog.jpg';
-  t = attr[0].match( /title\s*=\s*"(.*?)"/ );
   t = (t !== null)? t[1] : 'OOOPS';
-
   var img_id = 'show_' + Math.random()*1e9;
   var content = '{img {@ class="showbox" id="' + img_id  
       + '" src="' + s + '" title="' + t + '" height="' + h
@@ -1121,10 +1234,10 @@ var build = function () {
     var attr = args.match( /@@[\s\S]*?@@/ );
     if (attr == null) return 'waiting for width, height, thumb';
     args = args.replace( attr[0], '' ).trim(); // extract attributes
-    attr = attr[0].replace(/^@@/, '').replace(/@@$/, ''); // clean attributes
-    h_start = attr.match( /height\s*=\s*"([\d]+)"/ );
-    w_end   = attr.match( /width\s*=\s*"([\d]+)"/ );
-    h_butt  = attr.match( /thumb\s*=\s*"([\d]+)"/ );
+    var attr = attr[0].replace(/^@@/, '').replace(/@@$/, ''); // clean attributes
+    var h_start = attr.match( /height\s*=\s*"([\d]+)"/ );
+    var w_end   = attr.match( /width\s*=\s*"([\d]+)"/ );
+    var h_butt  = attr.match( /thumb\s*=\s*"([\d]+)"/ );
     h_start = (h_start !== null)? h_start[1] : 100; 
     w_end   = (w_end !== null)?   w_end[1]   : 300;
     h_butt  = (h_butt !== null)?  h_butt[1]  : 30;
@@ -1550,13 +1663,13 @@ global_e['display'] = function() {
 
 // 2) EVALUATION
 // some useful functions specific to JavaScript primitives
-function isNumber(x) { return !isNaN(parseFloat(x)) && isFinite(x) }
-function isSymbol(x) { return typeof x === 'string' }
-function jsFormat(x) { // because the way Javascript plays with booleans
+var isNumber = function(x) { return !isNaN(parseFloat(x)) && isFinite(x) };
+var isSymbol = function(x) { return typeof x === 'string' };
+var jsFormat = function(x) { // because the way Javascript plays with booleans
   if (x == null)        return null;
 	else if (isNumber(x)) return x || 0;
 	else                  return x || false; 
-}
+};
 
 var evaluate = function (x, env) {
   env = env || global_e;
