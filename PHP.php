@@ -1,7 +1,7 @@
 <?php 
 
   define ( "WEBSITE",  "http://epsilonwiki.free.fr/lambdaway/" );
-	define ( "VERSION",  "{&lambda; way} v.20160411" );
+	define ( "VERSION",  "{&lambda; way} v.20160608" );
 	define ( "PAGES",    "pages/" );
 	define ( "HISTORY",  "history/" );
 
@@ -84,7 +84,8 @@
 					$g_editor .= "<input id='save_button' type='submit' value='save' onclick='return LAMBDATANK.doSave();'> ";
 				} else { 
 					$g_editor .= "user:anonymous ";
-					$g_editor .= "<input id='save_button' type='submit' value='save' disabled='disabled'> ";
+          // because disabling a button is not a good protection, the choice is to forget it (20160602)
+					// $g_editor .= "<input id='save_button' type='submit' value='save' disabled='disabled'> ";
 				}
 			} else {
 				$g_editor .= "<input id='save_button' type='submit' value='save' onclick='return LAMBDATANK.doSave();'> ";
@@ -197,14 +198,21 @@
 	}
 
 	function doSave () {
+		global $g_validUser; // added 20160602
+
 		$page = doControlName( $_GET['save']);
 		doLogs( 'save' );
 		$content = doControlPage( $_POST['content'] );
-		// save button is disabled if user is not logged, it should be test here too
+		// update 20160608
 		if (!preg_match('/^(°|;|_|\{|\/)/', $content)) {
-			header( "location: ?view=$page" );
+			header( "location: ?view=$page" );  // go home!
 			return;
 		}
+		if (!$g_validUser && !( $page == FORUM || $page == SANDBOX ) ) {
+			header( "location: ?view=$page" );  // go home!
+			return;
+		}
+		// update 20160608
 		if ($handle = fopen(PAGES.$page.'.txt', 'w')) {	
 			if (is_writable(PAGES.$page.'.txt'))
 				$bytes1 = fwrite($handle, $content);	
