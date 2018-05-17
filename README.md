@@ -3,7 +3,7 @@ The {lambda way} project is a workshop built as a thin overlay on top of any mod
 
     • Everything can be seen in http://lambdaway.free.fr/ ,
     • A complete 50kb archive can be downloaded from http://lambdaway.free.fr/workshop/archive.zip , 
-    • For installation, follow instructions given in http://lambdaway.free.fr/workshop/index.php?view=download . 
+    • For installation, follow instructions given in http://lambdaway.free.fr/workshop/?view=download . 
 
 This is how a minimal wiki can be built using the 5 files which have been uploaded in this submit:
 
