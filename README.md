@@ -3,16 +3,4 @@ The {lambda way} project is a workshop built as a thin overlay on top of any mod
 
     • Everything can be seen in http://lambdaway.free.fr/ ,
     • A complete 50kb archive can be downloaded from http://lambdaway.free.fr/workshop/archive.zip , 
-    • For installation, follow instructions given in http://lambdaway.free.fr/workshop/?view=download . 
-
-This is how a minimal wiki can be built using the 5 files which have been uploaded in this submit:
-
-    1) create a folder named for instance. "mywiki",
-    2)  in "mywiki" put the files "index.php" and "config.php",
-    3) in "mywiki" create five folders named "meca", "skins", "pages", "history" and "data"
-    3.1) in "meca" put the files "HTML.html", "PHP.php" and "JS.js",
-    3.2) in "skins" create a folder named "basic" and put the file "CSS.cs" in it,
-    3.3) let empty the three other folders, "pages", "history" and "data",
-    4) via FTP upload the folder "mywiki" to your web account (running PHP) and control files system permissions.
-
-You can now access your wiki and begin to edit pages.
+    • For installation, follow instructions given in http://lambdaway.free.fr/workshop/?view=download .
