@@ -1,7 +1,19 @@
 <?php 
+/*
+  LAMBDAWAY | alain marty | 2017/04/08
 
-  define ( "WEBSITE",  "http://epsilonwiki.free.fr/lambdaway/" );
-	define ( "VERSION",  "{&lambda; way} v.20160608" );
+  This software is subject to, and may be distributed under, the
+  GNU General Public License, either Version 2 of the license,
+  or (at your option) any later version. The license should have
+  accompanied the software or you may obtain a copy of the license
+  from the Free Software Foundation at http://www.fsf.org .
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+  See the GNU General Public License for more details.
+
+  require JS.js
+*/
 	define ( "PAGES",    "pages/" );
 	define ( "HISTORY",  "history/" );
 
@@ -26,7 +38,8 @@
 			$html = preg_replace('/{SKIN}/', $skin, $html);
 			$html = preg_replace('/{VIEW}/', $g_view, $html);
 			$html = preg_replace('/{EDITOR}/', $g_editor, $html);
-			$html = preg_replace('/{ONLOAD}/', "onload='LAMBDATANK.do_update( true )'", $html);
+			//$html = preg_replace('/{ONLOAD}/', "onload='LAMBDATANK.update( true )'", $html);
+			$html = preg_replace('/{ONLOAD}/', "onload='LAMBDATANK.update()'", $html);
 			echo $html;
 		}
 	}
@@ -66,7 +79,6 @@
 		$g_view .= "</div>";
 		$g_view .= doTitle( $g_page );
 		$g_view .= "\n<div id='page_view'></div>\n";
-		$g_view .= doFooter();
 	}
 	
 	function doEditor () {
@@ -92,9 +104,10 @@
 			}
 			$g_editor .= "<input id='cancel_button' type='button' value='cancel' onclick='return LAMBDATANK.doCancel();'> ";
 		}
-		$g_editor .= "<span id='infos'></span>";
+		$g_editor .= "<span id='page_infos'></span>";
 		$g_editor .= "</div>";
-		$g_editor .= "<textarea id='page_textarea' name='content' onkeyup='LAMBDATANK.do_update( false )'>\n$file_content\n</textarea>";
+		// $g_editor .= "<textarea id='page_code' name='content' onkeyup='LAMBDATANK.update( false )'>\n$file_content\n</textarea>";
+		$g_editor .= "<textarea id='page_code' name='content' onkeyup='LAMBDATANK.update()'>\n$file_content\n</textarea>";
 		$g_editor .= "</form>";
 	}
 
@@ -112,7 +125,6 @@
 			$g_view .= doTitle( $g_page );
 			$g_view .= doHistory_page($g_page);
 		}
-		$g_view .= doFooter();	// étudier duplicate ID footer
 	}
 
 	function doSkin() {
@@ -146,7 +158,6 @@
 		$g_view = "<a href='javascript:history.back();'>return page</a>";
 		$g_view .= doTitle( 'skins' );
 		$g_view .= $string;
-		$g_view .= doFooter();
 	}
 	
 	function doBack () {
@@ -160,7 +171,6 @@
 			$g_view .= "<textarea id='textarea_backpage'>".$content."</textarea>";
 		} else 
 			$g_view .= 'doBack oops';
-		$g_view .= doFooter();
 	}
 
 	function doSearch () {
@@ -170,7 +180,6 @@
 		$g_view = "<a href='javascript:history.back();'>return page</a>";
 		$g_view .= doTitle( $search );
 		$g_view .= search_result( $search );
-		$g_view .= doFooter();
 	}
 
 	function doLoad() {
@@ -179,7 +188,6 @@
 		$g_view = "<a href='javascript:history.back();'>return page</a>";
 		$g_view .= doTitle( "upload" );
 		$g_view .= load_file();
-		$g_view .= doFooter();		
 	}
 
 ///////////////////////
@@ -193,10 +201,6 @@
 					 .WIKI_NAME."<a href='?view=".START."'> :: </a>$name</div>";
 	}
 
-	function doFooter() {
-		return "<div id='footer'><a href='".WEBSITE."'>".VERSION."</a></div>"; 
-	}
-
 	function doSave () {
 		global $g_validUser; // added 20160602
 
@@ -204,11 +208,12 @@
 		doLogs( 'save' );
 		$content = doControlPage( $_POST['content'] );
 		// update 20160608
-		if (!preg_match('/^(°|;|_|\{|\/)/', $content)) {
+		if (!preg_match('/^(°|;|_|\{|\/|#)/', $content)) {  // added # on 20170707
 			header( "location: ?view=$page" );  // go home!
 			return;
 		}
-		if (!$g_validUser && !( $page == FORUM || $page == SANDBOX ) ) {
+		// if (!$g_validUser && !( $page == FORUM || $page == SANDBOX ) ) { // added 20161227
+		if (WITH_PASSWORDS && !$g_validUser && !( $page == FORUM || $page == SANDBOX ) ) {
 			header( "location: ?view=$page" );  // go home!
 			return;
 		}

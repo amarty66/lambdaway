@@ -6,8 +6,8 @@ body {
 }
 #frame_view {
 	width:600px; 
-  border:1px solid black;
   padding:10px; 
+  border:1px solid black;
   box-shadow:0 0 8px black;
   background:#fff;
   opacity:0.8;
@@ -59,7 +59,7 @@ body {
 #page_view {
 	margin-top:10px;
 }
-#page_textarea {
+#page_code {
 	width:98%; 
 	height:400px; 
 	margin-top:10px;
@@ -78,6 +78,10 @@ body {
 	font-size:0.8em;
 	opacity:0.5;
 }
+
+
+
+
 a {
 	text-decoration:none; 
 	color:#888; 
@@ -147,8 +151,8 @@ td {
 pre { 
 	padding:5px; 
 	background-color: #eee; 
-	font:bold 0.9em courier new; 
-	color:#400; 
+	font:normal 0.9em courier new; 
+	color:#000; 
 }
 blockquote { 
 	border:1px solid #888; 
@@ -166,6 +170,21 @@ sup, sub {
 	padding-right:20px; 
 	border-left:1px solid #ccc;
 }
+
+/* .post { 
+	display:block; 
+	margin-top:20px; 
+	margin-left:5px; 
+	padding-left:15px; 
+	padding-right:15px; 
+	background-color:#eee; 
+	font-weight:bold; 
+	color:#f00; 
+	font-size:1.2em;
+	text-shadow:1px 1px 1px #222222; 
+	border-top:1px solid #888;
+	line-height:0.7em;
+} */
 
 /* SHOWBOX & LIGHTBOX */
 
