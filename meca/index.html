@@ -3,7 +3,7 @@
  <head>
   <meta charset="utf-8">
   <meta name="Author" lang="fr" content="alain marty" />
-  <meta name="Copyright" content="copyleft, GNU GPL 2017" />
+  <meta name="Copyright" content="copyleft, GNU GPL 2018" />
   <title>lambda-talk's console</title>
   <style type='text/css' rel='stylesheet'>
 #frame { position:absolute; width:500px; padding:10px; background:#ffe; left:50%; margin-left:-260px; border:1px solid grey; }
@@ -13,10 +13,9 @@
 a {color:grey; text-decoration:none;}
 a:hover {color:red;}
   </style>
-  <script src="lambdatalk.js"></script>
-  <script src="lambdatank.js"></script>
+  <script src="JS.js"></script>
  </head>
-<body onload="do_evaluate()">
+<body onload="LAMBDACONSOLE.update()">
 <div id="frame">
 <h1>{&lambda; talk console}</h1>
 <p><i>Alain Marty | copyleft GPL | 2017/06/27</i></p> 
@@ -25,8 +24,9 @@ a:hover {color:red;}
 <h3>Input</h3> 
 
 <!-- start of input, infos, output containers -->
-<textarea id="page_code" onkeyup="LAMBDACONSOLE.update()"></textarea>
-
+<textarea id="page_code" onkeyup="LAMBDACONSOLE.update()">
+{+ 1 2}
+</textarea>
 <h3>Output</h3> 
 
 <div id="page_infos"></div>
