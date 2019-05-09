@@ -1,223 +1,131 @@
 <?php 
-/*
-  LAMBDAWAY | alain marty | 2017/04/08
+/* lambdaspeech | copyleft_GPL alainmarty 2018 */
+// called by index.php
 
-  This software is subject to, and may be distributed under, the
-  GNU General Public License, either Version 2 of the license,
-  or (at your option) any later version. The license should have
-  accompanied the software or you may obtain a copy of the license
-  from the Free Software Foundation at http://www.fsf.org .
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
-  See the GNU General Public License for more details.
-
-  require JS.js
-*/
-	define ( "PAGES",    "pages/" );
-	define ( "HISTORY",  "history/" );
-
+/////////////////////////////////////////////////////////////////////////////
 	function doHTML() {
-		global $g_view, $g_editor, $g_validUser;
+    global $g_validUser;
 		$g_validUser = isValidUser();
-		date_timezone();
-		if (file_exists('meca/HTML.html') && ($html = file_get_contents('meca/HTML.html')) ) {
-			if (isset($_GET['save']) && isset($_POST['content']))
-				doSave(); 
-			else if (isset($_GET['list']))   doList(); 
-			else if (isset($_GET['back']))   doBack();
-			else if (isset($_GET['search'])) doSearch();
-			else if (isset($_GET['skin']))   doSkin(); 
-			else if (isset($_GET['load']))   doLoad(); 
-			else {
-				doView();
-				doEditor();
-			}
-			$skin = (isset($_COOKIE['skin']))? $_COOKIE['skin'] : SKIN;
-			$html = preg_replace('/{WIKI_NAME}/', WIKI_NAME, $html);
-			$html = preg_replace('/{SKIN}/', $skin, $html);
-			$html = preg_replace('/{VIEW}/', $g_view, $html);
-			$html = preg_replace('/{EDITOR}/', $g_editor, $html);
-			//$html = preg_replace('/{ONLOAD}/', "onload='LAMBDATANK.update( true )'", $html);
-			$html = preg_replace('/{ONLOAD}/', "onload='LAMBDATANK.update()'", $html);
-			echo $html;
-		}
+    date_timezone ();
+		$html  = "<!doctype html>\n"
+           . "<html lang=fr>\n"
+           .   "<head>\n"
+           .     "<meta charset='utf-8' />\n"
+           .     "<meta name='Author' content='alain marty ©2018' />\n"
+		       .     "<title>".doTitle()."</title>\n"
+		       .     "<link href='meca/CSS.css' type='text/css' rel='stylesheet' />\n"
+//           .     "<script src='meca/JS.js'></script>\n"
+		       .   "</head>\n"
+           .   "<body onload='LAMBDATANK.update(true)'>\n"
+//           .   "<body>\n"
+		       .     "<div id='page_frame'>".doContent()."</div>\n"
+           .     "<div id='page_foot'><a href='http://lambdaway.free.fr/lambdaspeech/'>".VERSION."</a></div>\n"
+           .     "<script src='meca/JS.js'></script>\n"
+		       .   "</body>\n"
+           . "</html>";
+		echo $html;
+	}
+/////////////////////////////////////////////////////////////////////////////
+	function doTitle() {
+		$chaine = '_';
+		if (isset($_GET['view']))  
+       $chaine = doControlName( $_GET['view'] );
+		return WIKI_NAME . " :: " . $chaine;
+	}
+	function doContent() {
+		if (isset($_GET['save']) && 
+        isset($_POST['content']) && !LOCK )  return doSave(); 
+		else if (isset($_GET['list']))           return doList();
+	  else if (isset($_GET['search']))         return doSearch();
+		else if (isset($_GET['back']))           return doBack();
+		else if (isset($_GET['load']))           return doLoad(); 
+		else                                     return doView();
+	}
+/////////////////////////////////////////////////////////////////////////////
+	function doView () { 
+    global $g_validUser;
+		$page = (isset($_GET['view']))? doControlName( $_GET['view']) : START;
+		doLogs( $page );
+		$file_content = (!LOCK)? "new_page" : "The wiki is locked.";			
+		$file_content = "";		// "This page is empty."	
+		if (file_exists(PAGES.$page.'.txt')) {
+      $file_content = doControlPage( file_get_contents(PAGES.$page.'.txt') );
+    }
+		$body = "<div class='page_menu' onmousedown='DRAG.beginDrag( this.parentNode, event );'>"
+          .   "<a href='?view=start' title='goto start'>" . TITLE . "</a>"
+          .   "<a href='javascript:LAMBDATANK.toggle_display(\"page_tools\")' title='tools'> :: </a>"
+          .   "<a href='javascript:LAMBDATANK.toggle_display(\"page_editor\")' title='open/hide page editor'>" . $page . "</a>"
+          .   "<div id='page_tools'>"
+          .        "<span title='user logged'>" . sessionuser() . "</span> "
+          .        "<span title='people connected'>" . connected(600) . "</span> | "
+          .        "<span title='list wiki pages'>" . menu_list() . "</span> | "
+          .        "<span title='login/logout'>" . menu_log() . "</span> |"
+          .        "<span title='load'>" . menu_load() . "</span><br />"
+          .        "<span title='search'>" . menu_search() . "</span> "
+          .   "</div>"
+          . "</div>"
+		      . "<div style='position:absolute; top:0; left:0;'>" // used by DRAG
+          .  "<div id='page_editor' style='display:none;'>"
+          .   "<form action='?save=$page' method='post' enctype='multipart/form-data'>"
+          .      "<div class='page_menu' onmousedown='DRAG.beginDrag( this.parentNode.parentNode, event );'>"
+          .        "<span title='save & publish'>" . menu_save($page) . "</span> | "
+          .        "<span id='page_infos' title='balance & time'></span> | "
+          .        "<span title='save & publish'>" . menu_lock() . "</span>"
+          .      "</div>"
+		      .      "<textarea id='page_textarea' name='content' onkeyup='LAMBDATANK.update()' placeHolder='Please, edit...'>\n"
+          .        $file_content
+          .      "</textarea>\n"
+		      .   "</form>\n"
+          .  "</div>\n"
+          . "</div>\n"
+          . "<div id='page_content'></div>";
+		return $body;
 	}
 
-	function isValidUser () {
-		session_start();
-		return (isset($_SESSION[WIKI_NAME]) && $_SESSION[WIKI_NAME]['isValidUser'] == true);
-	}
-	function sessionUser () {
-		session_start();
-		return (isValidUser())? $_SESSION[WIKI_NAME]['username'] : '';
-	}
-
-	function doView () {
-		global $g_page, $g_view, $g_validUser;
-		$g_page = (isset($_GET['view']))? doControlName( $_GET['view']) : START;
-		doLogs( $g_page );
-		$g_view = sessionUser () . ' ';
-		$g_view .= "<a href='" . 'javascript:LAMBDATANK.toggle_visibility("pop_menu_view")' . "'>+</a> ";
-		$g_view .= "<div id='pop_menu_view' style='display:inline;'>";
-		$g_view .= "<form style='display:inline;' method='get' action='index.php'>\n";
-		$g_view .= "<input type='text' id='search' name='search' placeHolder='°¿°' title='Look for a word.' onClick='this.select()'/>";
-		$g_view .= "</form> ";
-		if (!LOCK) {
-			$g_view .= " <span style='color:#888;'>".connected(600)."</span> ";
-			$g_view .= "| <a href='?skin' title='wiki skins'>skin</a> ";
-			if (WITH_PASSWORDS) { // button login or logout
-				$g_view .= ($g_validUser)? "| <a href='?list=*' title='wiki pages list'>list</a> " : " ";
-				$g_view .= ($g_validUser)? '| <a href="meca/login.php?logout=true" title="user/password logout">logout</a> ' : 
-										   '| <a href="meca/login.php"             title="user/password login">login</a> ' ;
-				$g_view .= ($g_validUser)? "| <a href='?load' title='load files'>load</a> " : "";
-			} else {
-				$g_view .= "| <a href='?list=*' title='wiki pages list'>list</a> ";
-			}
-			$g_view .= "| <a href='" . 'javascript:LAMBDATANK.toggle_display("frame_editor")' . "' title='enter editor'>edit</a>";
-		}
-		$g_view .= "</div>";
-		$g_view .= doTitle( $g_page );
-		$g_view .= "\n<div id='page_view'></div>\n";
-	}
-	
-	function doEditor () {
-		global $g_page, $g_editor, $g_validUser;
-		if (file_exists(PAGES.$g_page.'.txt'))
-			$file_content =  doControlPage( file_get_contents(PAGES.$g_page.'.txt') );
-		 else 
-			$file_content = "This page is empty, edit it.";
-		$g_editor = "<form action='?save=$g_page' method='post' enctype='multipart/form-data'>";
-		$g_editor .= "<div id='menu_editor' onmousedown='DRAG.beginDrag( this.parentNode.parentNode, event )'>";
-		if (!LOCK) {
-			if (WITH_PASSWORDS) { // save button enabled if user is logged
-				if ($g_validUser || ($g_page == FORUM) || ($g_page == SANDBOX) ) {
-					$g_editor .= "user:".sessionUser()." ";
-					$g_editor .= "<input id='save_button' type='submit' value='save' onclick='return LAMBDATANK.doSave();'> ";
-				} else { 
-					$g_editor .= "user:anonymous ";
-          // because disabling a button is not a good protection, the choice is to forget it (20160602)
-					// $g_editor .= "<input id='save_button' type='submit' value='save' disabled='disabled'> ";
-				}
-			} else {
-				$g_editor .= "<input id='save_button' type='submit' value='save' onclick='return LAMBDATANK.doSave();'> ";
-			}
-			$g_editor .= "<input id='cancel_button' type='button' value='cancel' onclick='return LAMBDATANK.doCancel();'> ";
-		}
-		$g_editor .= "<span id='page_infos'></span>";
-		$g_editor .= "</div>";
-		// $g_editor .= "<textarea id='page_code' name='content' onkeyup='LAMBDATANK.update( false )'>\n$file_content\n</textarea>";
-		$g_editor .= "<textarea id='page_code' name='content' onkeyup='LAMBDATANK.update()'>\n$file_content\n</textarea>";
-		$g_editor .= "</form>";
-	}
-
-	function doList() {
-		global $g_page, $g_view; // are computed by this function
-		$g_page = doControlName( $_GET['list'] );
-		if ($g_page == "*") {	// la fonction est appelée par : index.php?list=*
-			doLogs( 'liste pages' );
-			$g_view = "<a href='javascript:history.back();'>return page</a>";
-			$g_view .= doTitle( 'wiki pages' );
-			$g_view .= doWiki_pages();
-		} else {	// la fonction est appelée par : index.php?list=nom_page
-			doLogs( 'history:'.$g_page );
-			$g_view = "<a href='javascript:history.back();'>return wiki list</a>";
-			$g_view .= doTitle( $g_page );
-			$g_view .= doHistory_page($g_page);
-		}
-	}
-
-	function doSkin() {
-		global $g_view; // is computed by this function
-		doLogs( 'skin' );
-		if( isset($_POST['phase']) && ('traitement' == $_POST['phase']) ) {
-			$choix = doControlName( $_POST['choix'] );
-			if (!empty($choix)) setcookie('skin', $choix);
-			header( "location: ?skin" );
-		}
-		else
-			$choix = (isset($_COOKIE['skin']))?  $_COOKIE['skin'] : SKIN;
-		$nb = 0;
-		if ( is_dir('skins')  && $themes_dir = @opendir('skins') ) {
-			while ($dir = readdir($themes_dir) )
-				if (is_dir('skins/'.$dir) && !preg_match('/\./', $dir) ) {
-					$skin[$nb] = $dir;
-					$nb++;
-				}
-			closedir($themes_dir);
-		}
-		$string = '<h1>skins</h1>';
-		$string .= '<form name="filtre" method="post">';
-		$string .= '<input type="hidden" name="phase" value="traitement"><ol>';
-		for($i=0;$i<$nb;$i++) {
-			$string  .= '<li><input type="radio" name="choix" value="'.$skin[$i] . '" '
-			. (($choix==$skin[$i])? 'checked="true"' : '') . ' /> '.$skin[$i].'</li>'; 
-		}
-		$string .= '</ol><p><input type="submit" value="choisir" title="choisir" /></p>';
-		$string .= '</form>';
-		$g_view = "<a href='javascript:history.back();'>return page</a>";
-		$g_view .= doTitle( 'skins' );
-		$g_view .= $string;
-	}
-	
-	function doBack () {
-		global $g_page, $g_view; // are computed by this function
-		$g_page = (isset($_GET['back']))? $_GET['back'] : 'oops';
-		$g_view = "<a href='javascript:history.back();'>return page history</a> ";
-		$g_view .= doTitle( $g_page );
-		//if (file_exists($g_page)) { // thanks to joseph abenhaim 20140606
-		if (!stristr( $g_page, ".php" ) && file_exists($g_page)) {
-			$content = doControlPage( file_get_contents($g_page) );
-			$g_view .= "<textarea id='textarea_backpage'>".$content."</textarea>";
-		} else 
-			$g_view .= 'doBack oops';
-	}
-
-	function doSearch () {
-		global $g_view;	// is computed by this function
-		$search = doControlName($_GET['search']);
-		doLogs( 'search: '.$search );
-		$g_view = "<a href='javascript:history.back();'>return page</a>";
-		$g_view .= doTitle( $search );
-		$g_view .= search_result( $search );
-	}
-
-	function doLoad() {
-		global $g_view; // is computed by this function
-		doLogs( 'load' );
-		$g_view = "<a href='javascript:history.back();'>return page</a>";
-		$g_view .= doTitle( "upload" );
-		$g_view .= load_file();
-	}
-
-///////////////////////
-
-	function doTitle( $name ) {
-		if ( preg_match( "/^_/", $name ) ) {
-			$name = substr( $name, 1 );
-			$name = "(".$name.")";
-		}
-		return "<div id='title' onmousedown='DRAG.beginDrag( this.parentNode, event );'>"
-					 .WIKI_NAME."<a href='?view=".START."'> :: </a>$name</div>";
-	}
-
+  function menu_lock () {
+    return "<input type='button' value='lock' title='lock/unlock evaluation' onclick='LAMBDATANK.toggle_lock(this)' />";
+  }
+  function menu_load () {
+    global $g_validUser;
+    return ($g_validUser)? "<a href='?load' title='load files'>load</a>" : "<span style='color:#ccc;'>load</span>";
+  }
+  function menu_list () {
+    global $g_validUser;
+    return ($g_validUser)? "<a href='?list=*'>pages</a>" : "<span style='color:#ccc;'>list</span>";;
+  }
+  function menu_log () {
+    global $g_validUser;
+    return ($g_validUser)?
+   '<a href="meca/login.php?logout=true">logout</a>' : '<a href="meca/login.php">login</a>';
+  }
+  function menu_search () {
+		$q = "<form style='display:inline;' method='get' action='index.php'>\n"
+		   .   "<input type='text' id='search' name='search' placeHolder='@¿@' "
+       .   "title='Search in the wiki...' style='text-align:center;' onClick='this.select()'/>"
+		   . "</form> ";
+    return $q;
+  }
+  function menu_save ( $page ) {
+    global $g_validUser;
+		if ($g_validUser || $page == FORUM || $page == SANDBOX )
+      return "<input type='submit' id='save_button' style='display:inline-block;' value='save'/>" ;
+    else
+      return "<input type='submit' id='save_button' style='display:none;' value='save'/>" ;
+  }
+/////////////////////////////////////////////////////////////////////////////
 	function doSave () {
-		global $g_validUser; // added 20160602
-
+		global $g_validUser;
 		$page = doControlName( $_GET['save']);
 		doLogs( 'save' );
 		$content = doControlPage( $_POST['content'] );
-		// update 20160608
-		if (!preg_match('/^(°|;|_|\{|\/|#)/', $content)) {  // added # on 20170707
+		if (!preg_match('/^(°|;|_|\{|\/|#)/', $content)) {
 			header( "location: ?view=$page" );  // go home!
 			return;
 		}
-		// if (!$g_validUser && !( $page == FORUM || $page == SANDBOX ) ) { // added 20161227
-		if (WITH_PASSWORDS && !$g_validUser && !( $page == FORUM || $page == SANDBOX ) ) {
+		if (!$g_validUser && !( $page == FORUM || $page == SANDBOX ) ) {
 			header( "location: ?view=$page" );  // go home!
 			return;
 		}
-		// update 20160608
 		if ($handle = fopen(PAGES.$page.'.txt', 'w')) {	
 			if (is_writable(PAGES.$page.'.txt'))
 				$bytes1 = fwrite($handle, $content);	
@@ -238,6 +146,27 @@
 		header( "location: ?view=$page" );
 	}
 
+	function doList() {
+    global $g_validUser;
+		if (LOCK || !$g_validUser)
+			header( "location: index.php" );
+
+		$page = doControlName( $_GET['list'] );
+		$title = "<div class='page_menu'>"
+           .   "<a href='?view=start' title='goto start'>".TITLE."</a> :: "
+           .   (($page == "*")? "list of pages" : "History of ") . $page
+           . "</div>";
+		$chaine = "<div id='page_content'>";
+		if ($page == "*") {	// la fonction est appelée par : index.php?list=*
+			$chaine .= doWiki_pages();
+		} 
+		else {	// la fonction est appelée par : index.php?list=nom_page
+			$chaine .= doHistory_page($page);
+		}
+		$chaine .= "</div>";
+		return $title.$chaine;
+	}
+
 	function doWiki_pages() {
 		$dir = opendir(getcwd()."/".PAGES);
 		while ($file = readdir($dir)) {
@@ -255,7 +184,7 @@
 				$chaine .= "<li>[<a href='?list=".$page."'>"
 								.strftime("%Y/%m/%d %H:%M:%S", $temp[0])
 								."</a>] ";
-				$chaine .= "/ <a href='?view=".$page."'>".$page."</a></li>";
+				$chaine .= "/ <a href='?view=" . $page . "'>" . $page . "</a></li>";
 			}
 			$chaine .= "</ol>";
 		}
@@ -265,17 +194,19 @@
 	}
 	
 	function doHistory_page($page) {
-		$temp = getcwd().'/'.HISTORY.$page;		
+		$chaine = "<a href='javascript:history.back();'>return page list</a> ";
+		$temp = getcwd().'/'.HISTORY.$page;	
 		if (is_dir($temp)) {
 			$dir = opendir($temp);
 			while ($file = readdir($dir)) {
-				if (preg_match( "/.txt/", $file))
+			  if (preg_match( "/.txt/", $file))
 					$tab[] = $file;
 			}
 			closedir($dir);
+
 			if (isset($tab) && is_array($tab)) {
 				rsort($tab);
-				$chaine = "<ol>";
+				$chaine .= "<ol>";
 				for ($i=0; $i<count($tab); $i++) {
 					$temp = substr( $tab[$i], 0, strlen($tab[$i]) - 4 );
 					$chaine .=  "<li><a href='?back=".HISTORY.$page."/".$tab[$i]."'>".$temp."</a></li>";
@@ -287,6 +218,35 @@
 			$chaine = "<p>No history for this page.</p>";
 		}
 		return $chaine;
+	}
+
+	function doBack () {
+		$g_page = (isset($_GET['back']))? $_GET['back'] : 'oops';
+		$g_view = "<a href='javascript:history.back();'>return page history</a> ";
+
+		$title = "<div class='page_menu'>"
+           .   "<a href='?view=start' title='goto start'>".TITLE."</a> :: "
+           .   (($g_page == "*")? "list of pages" : $g_page) 
+           . "</div>";
+
+		if (!stristr( $g_page, ".php" ) && file_exists($g_page)) {
+			$content = doControlPage( file_get_contents($g_page) );
+			$g_view .= "<textarea id='page_textarea_backpage'>".$content."</textarea>";
+		} else {
+			$g_view .= 'doBack oops';
+    }
+    return $title . $g_view;
+	}
+
+	function doSearch () {
+		$search = doControlName($_GET['search']);
+		$title = "<div class='page_menu'>"
+           .   "<a href='?view=start' title='goto start'>".TITLE."</a> :: "
+           .   "search"
+           . "</div>";
+		$body = "<a href='javascript:history.back();'>return page</a>"
+		      . search_result( $search );
+    return $title . $body;
 	}
 
 	function search_result ( $search ) {
@@ -320,9 +280,26 @@
 		return $result;		
 	}
 
-	function load_file() {
-		if (LOCK)
+	function doLoad() {
+    global $g_validUser;
+		if (LOCK || !$g_validUser)
 			header( "location: index.php" );
+
+		global $g_view; // is computed by this function
+		doLogs( 'load' );
+		$g_view = "<a href='javascript:history.back();'>return page</a>";
+
+		$title = "<div class='page_menu'>"
+           .   "<a href='?view=start' title='goto start'>".TITLE."</a> :: "
+           .   "upload"
+           . "</div>";
+
+		$g_view .= load_file();
+
+    return $title . $g_view;
+	}
+
+	function load_file() {
 		$types = array( 
 			"image/jpeg", "image/jpg", "image/gif", "image/png", "application/pdf", 
 			"application/zip", "text/html", "application/vnd.oasis.opendocument.text", 
@@ -368,30 +345,46 @@
 		return $content;
 	}
 
-	function date_timezone () { // against PHP5 warning bug in local usage ; called at start
-	 	if(function_exists("date_default_timezone_set") and function_exists("date_default_timezone_get"))
-			@date_default_timezone_set(@date_default_timezone_get());
+/////////////////////////////////////////////////////////////////////////////
+	function isValidUser () {
+		session_start();
+		return (isset($_SESSION[WIKI_NAME]) && $_SESSION[WIKI_NAME]['isValidUser'] == true);
 	}
-
-	function doControlName( $chaine ) {   // control page names content
-		$chaine = trim( $chaine );          // clear spaces before and after
-		$chaine = stripslashes( $chaine );  // clear backslashes
-		$chaine = strip_tags( $chaine );    // clear all HTML tags
-		$chaine = preg_replace("/(\.php)/i", '_php', $chaine ); // filter « .php »
+	function sessionUser () {
+		session_start();
+		return (isValidUser())? $_SESSION[WIKI_NAME]['username'] : '';
+	}
+	function doControlName( $chaine ) {	// des noms des pages
+    // traitement des slashes et des espaces avant et apres
+		$chaine = trim( stripslashes( $chaine ) );	
+    // supprime toutes les balises html
+		$chaine = strip_tags( $chaine );
+    // filtre « .php » dans le nom de la page			
+		$chaine = preg_replace("/(\.php)/i", '_php', $chaine );	
+    // filtre « /.:;!?"'(){}[] »
+		$chaine = preg_replace("/([\/\.:;!\?\"\'\(\)\[\]\{\}])/i", '_', $chaine );	
 		return $chaine;
 	}
-	
-	function doControlPage( $chaine ) {   // control pages content
+  function doControlPage( $chaine ) {
 		$chaine = trim( $chaine );        // clear spaces before and after
-		if (get_magic_quotes_gpc())       // ajouté le 24/06/2015 pour fonctionner sur PHP Version 5.4.38
+		if (get_magic_quotes_gpc())       // ajouté pour  PHP Version 5.4.38
           $chaine = stripslashes( $chaine );  // clear backslashes
-	 	// $chaine = preg_replace( '/<([^ ])/', '< $1', $chaine ); // HTML tags are broken in JS.js
+
+		$chaine = preg_replace("/(<iframe)/is", 	'NO_iframe', $chaine );
+		$chaine = preg_replace("/(<script)/is", 	'NO_script', $chaine );
+		$chaine = preg_replace("/(<form)/is", 		'NO_form', $chaine );
+		$chaine = preg_replace("/(<\?(php)*)/is", 'NO_php', $chaine );
+
 		// preserve backslashes in page : 
 		$chaine = preg_replace("/\\\/is", 	'&#92;', $chaine ); 
 		// it works after stripslashes(), not before, but I don't know why ??
 		return $chaine;
 	}
-
+	function date_timezone () { // against PHP5 warning bug in local usage ; called at start
+	 	if(function_exists("date_default_timezone_set") and 
+       function_exists("date_default_timezone_get"))
+			@date_default_timezone_set(@date_default_timezone_get());
+	}
 	function get_ip() {
 		if(isset($_SERVER['HTTP_X_FORWARDED_FOR'])) 
 			$ip = $_SERVER['HTTP_X_FORWARDED_FOR']; 
@@ -401,8 +394,29 @@
 		 	$ip = $_SERVER['REMOTE_ADDR'];
 		return $ip;
 	}
+	function doLogs( $page ) { // log of pages calls
+		$referer = (isset($_SERVER['HTTP_REFERER']))? $_SERVER['HTTP_REFERER'] : 'undefined';
+		if ($referer != 'undefined') {
+			$temp = parse_url($referer);	// hash array host, path, query
+			$from_host = $temp['host']; 												
+			$from_path = $temp['path'];																						
+			$from_query = (!empty($temp['query']))? $temp['query'] : 'NO_QUERY';
+		}
+		$phpself = $_SERVER['PHP_SELF'];	
+		$IP = get_ip();
+		$date = date("Y/m/d H:i:s", mktime(date("H")));
+		if ($referer != 'undefined')
+			$log = "$date | IP: $IP | from : $from_host$from_path?$from_query to : $page \n";
+		else
+			$log = "$date | IP: $IP | from : $referer to $page \n";
+		$mypage = 'meca/_logs.txt';
+		if (($p_mypage = fopen($mypage, 'a+')) && is_writable($mypage)) {
+			fwrite($p_mypage, $log);
+			fclose($p_mypage);
+		}
+	}
 
-	function connected( $time ) {	// called this way : connected(600)
+function connected( $time ) {	// called this way : connected(600)
 		//	Auteur: Merckel Loïc // Web: http://www.merckel.org/spip
 		$ip = get_ip();
 		$date = time();	// seconds from 01/01/1970
@@ -455,26 +469,5 @@
 		return $ii;
 	}
 
-	function doLogs( $page ) { // log of pages calls
-		$referer = (isset($_SERVER['HTTP_REFERER']))? $_SERVER['HTTP_REFERER'] : 'undefined';
-		if ($referer != 'undefined') {
-			$temp = parse_url($referer);	// hash array host, path, query
-			$from_host = $temp['host']; 												
-			$from_path = $temp['path'];																						
-			$from_query = (!empty($temp['query']))? $temp['query'] : 'NO_QUERY';
-		}
-		$phpself = $_SERVER['PHP_SELF'];	
-		$IP = get_ip();
-		$date = date("Y/m/d H:i:s", mktime(date("H")));
-		if ($referer != 'undefined')
-			$log = "$date | IP: $IP | from : $from_host$from_path?$from_query to : $page \n";
-		else
-			$log = "$date | IP: $IP | from : $referer to $page \n";
-		$mypage = 'meca/_logs.txt';
-		if (($p_mypage = fopen($mypage, 'a+')) && is_writable($mypage)) {
-			fwrite($p_mypage, $log);
-			fclose($p_mypage);
-		}
-	}
-	
+
 ?>
