@@ -7,30 +7,31 @@
   <title>lambda-talk's console</title>
   <style type='text/css' rel='stylesheet'>
 #frame { position:absolute; width:500px; padding:10px; background:#ffe; left:50%; margin-left:-260px; border:1px solid grey; }
-#page_code { width:100%; height:200px; font:normal 0.8em courier; border:0px solid black; box-shadow:0 0 8px black;  }
+#page_textarea { width:100%; height:200px; font:normal 0.8em courier; border:0px solid black; box-shadow:0 0 8px black;  }
 #page_infos { text-align:center; font:normal 0.8em courier; }
-#page_view { width:98%; font:normal 1.0em arial; box-shadow:0 0 8px black; background:white; padding:5px; white-space:pre-wrap; }
+#page_content { width:98%; font:normal 1.0em arial; box-shadow:0 0 8px black; background:white; padding:5px; white-space:pre-wrap; }
 a {color:grey; text-decoration:none;}
 a:hover {color:red;}
   </style>
-  <script src="JS.js"></script>
+  <script src="JS_mini.js"></script>
  </head>
-<body onload="LAMBDACONSOLE.update()">
+<body onload="display_update()">
 <div id="frame">
 <h1>{&lambda; talk console}</h1>
-<p><i>Alain Marty | copyleft GPL | 2017/06/27</i></p> 
-<p>See some explanations and examples in the <a href="..?view=console">console</a> wiki page.</p>
+<p><i>Alain Marty | copyleft GPL | 2018/09/30</i></p> 
+<p>See some explanations in <a href="http://lambdaway.free.fr/lambdaspeech/">lambdaspeech</a>.</p>
 
 <h3>Input</h3> 
 
 <!-- start of input, infos, output containers -->
-<textarea id="page_code" onkeyup="LAMBDACONSOLE.update()">
-{+ 1 2}
+<textarea id="page_textarea" onkeyup="display_update()">
+'{+ 1 2}
+-> {+ 1 2}
 </textarea>
 <h3>Output</h3> 
 
 <div id="page_infos"></div>
-<div id="page_view"></div>
+<div id="page_content"></div>
 <!-- end of input, infos, output containers -->
 
 </div>
