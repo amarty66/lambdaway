@@ -408,7 +408,7 @@
 			$log = "$date | IP: $IP | from : $from_host$from_path?$from_query to : $page \n";
 		else
 			$log = "$date | IP: $IP | from : $referer to $page \n";
-		$mypage = 'meca/_logs.txt';
+		$mypage = '/var/log/lambdaway.log';
 		if (($p_mypage = fopen($mypage, 'a+')) && is_writable($mypage)) {
 			fwrite($p_mypage, $log);
 			fclose($p_mypage);
