@@ -10,15 +10,15 @@ define ( "FORUM",			     "agora" );				  // "forum" and "sandbox" always editabl
 define ( "SANDBOX",		     "sandbox" );			  // name could be "#&§è!çà" for prevent it
 define ( "LOAD_MAX", 	     "200");						// maximum size of uploadable files
 
-// don't modify 
-define ( "VERSION", "lambdaspeech v.20190318" ); 
+// don't modify
+define ( "VERSION", "lambdaspeech v.20190318" );
 define ( "TITLE", WIKI_NAME );
-define ( "PAGES", "pages/" ); 
+define ( "PAGES", "pages/" );
 define ( "HISTORY", "history/" );
 
 // currently non available
 $users = array(
-	  "one" => "two",                           // password are not crypted 
+	  "one" => "two",                           // password are not crypted
 //  "three" => "four",
 //  "five" => "six"
 );

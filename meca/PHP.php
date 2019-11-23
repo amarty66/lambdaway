@@ -1,4 +1,4 @@
-<?php 
+<?php
 /* lambdaspeech | copyleft_GPL alainmarty 2018 */
 // called by index.php
 
@@ -27,26 +27,26 @@
 /////////////////////////////////////////////////////////////////////////////
 	function doTitle() {
 		$chaine = '_';
-		if (isset($_GET['view']))  
+		if (isset($_GET['view']))
        $chaine = doControlName( $_GET['view'] );
 		return WIKI_NAME . " :: " . $chaine;
 	}
 	function doContent() {
-		if (isset($_GET['save']) && 
-        isset($_POST['content']) && !LOCK )  return doSave(); 
+		if (isset($_GET['save']) &&
+        isset($_POST['content']) && !LOCK )  return doSave();
 		else if (isset($_GET['list']))           return doList();
 	  else if (isset($_GET['search']))         return doSearch();
 		else if (isset($_GET['back']))           return doBack();
-		else if (isset($_GET['load']))           return doLoad(); 
+		else if (isset($_GET['load']))           return doLoad();
 		else                                     return doView();
 	}
 /////////////////////////////////////////////////////////////////////////////
-	function doView () { 
+	function doView () {
     global $g_validUser;
 		$page = (isset($_GET['view']))? doControlName( $_GET['view']) : START;
 		doLogs( $page );
-		$file_content = (!LOCK)? "new_page" : "The wiki is locked.";			
-		$file_content = "";		// "This page is empty."	
+		$file_content = (!LOCK)? "new_page" : "The wiki is locked.";
+		$file_content = "";		// "This page is empty."
 		if (file_exists(PAGES.$page.'.txt')) {
       $file_content = doControlPage( file_get_contents(PAGES.$page.'.txt') );
     }
@@ -125,15 +125,15 @@
 			header( "location: ?view=$page" );  // go home!
 			return;
 		}
-		if ($handle = fopen(PAGES.$page.'.txt', 'w')) {	
+		if ($handle = fopen(PAGES.$page.'.txt', 'w')) {
 			if (is_writable(PAGES.$page.'.txt'))
-				$bytes1 = fwrite($handle, $content);	
+				$bytes1 = fwrite($handle, $content);
 			fclose($handle);
 		}
 		$history_page = HISTORY.$page."/";
 		if (!is_dir($history_page))
 			mkdir($history_page);
-		$IP = (preg_match('/^(\d{1,3}\.){3}\d{1,3}$/', $_SERVER['REMOTE_ADDR']))? 
+		$IP = (preg_match('/^(\d{1,3}\.){3}\d{1,3}$/', $_SERVER['REMOTE_ADDR']))?
 			$_SERVER['REMOTE_ADDR'] : ' IP intrusion';
 		$mybackup = $history_page . date("Ymd-His", mktime(date("H"))) . ".txt";
 		if (($p_mybackup = fopen($mybackup, "a")) && is_writable($mybackup)) {
@@ -141,7 +141,7 @@
 						.date("Y/m/d H:i:s", mktime(date("H")))."\n";
 			fwrite($p_mybackup, $head.$content);
 			fclose($p_mybackup);
-		}				
+		}
 		header( "location: ?view=$page" );
 	}
 
@@ -158,7 +158,7 @@
 		$chaine = "<div id='page_content'>";
 		if ($page == "*") {	// la fonction est appelée par : index.php?list=*
 			$chaine .= doWiki_pages();
-		} 
+		}
 		else {	// la fonction est appelée par : index.php?list=nom_page
 			$chaine .= doHistory_page($page);
 		}
@@ -191,10 +191,10 @@
 			$chaine = "<p>No page in this wiki.</p>";
 		return $chaine;
 	}
-	
+
 	function doHistory_page($page) {
 		$chaine = "<a href='javascript:history.back();'>return page list</a> ";
-		$temp = getcwd().'/'.HISTORY.$page;	
+		$temp = getcwd().'/'.HISTORY.$page;
 		if (is_dir($temp)) {
 			$dir = opendir($temp);
 			while ($file = readdir($dir)) {
@@ -225,7 +225,7 @@
 
 		$title = "<div class='page_menu'>"
            .   "<a href='?view=start' title='goto start'>".TITLE."</a> :: "
-           .   (($g_page == "*")? "list of pages" : $g_page) 
+           .   (($g_page == "*")? "list of pages" : $g_page)
            . "</div>";
 
 		if (!stristr( $g_page, ".php" ) && file_exists($g_page)) {
@@ -264,19 +264,19 @@
 					$p_file = fopen(PAGES.$file, 'r');
 					$content = fread($p_file, filesize(PAGES.$file));
 					fclose($p_file);
-					if (preg_match("/\b$search\b/i", $content) || 
+					if (preg_match("/\b$search\b/i", $content) ||
 							preg_match("/\b$search\b/i", PAGES.$file)) {
 						$file = substr($file, 0, strlen($file) - 4);
 						$temp .= '<li><a href="?view='.$file.'">'.$file.'</a></li>';
 					}
 				}
 			}
-			$result = ($temp !='')? 
-				'<h4>'.$search.' is in pages :'.'</h4><ol>'.$temp.'</ol>' 
+			$result = ($temp !='')?
+				'<h4>'.$search.' is in pages :'.'</h4><ol>'.$temp.'</ol>'
 				:
 				'<h4>'.$search.' is nowhere.'.'</h4>';
 		}
-		return $result;		
+		return $result;
 	}
 
 	function doLoad() {
@@ -299,9 +299,9 @@
 	}
 
 	function load_file() {
-		$types = array( 
-			"image/jpeg", "image/jpg", "image/gif", "image/png", "application/pdf", 
-			"application/zip", "text/html", "application/vnd.oasis.opendocument.text", 
+		$types = array(
+			"image/jpeg", "image/jpg", "image/gif", "image/png", "application/pdf",
+			"application/zip", "text/html", "application/vnd.oasis.opendocument.text",
 			"application/vnd.oasis.opendocument.spreadsheet");
 		$load_extensions = "\.(jpg|jpeg|gif|png|pdf|zip|html|odt|ods)$";
 		$load_description = "Types of authorized files : "
@@ -321,16 +321,16 @@
 			if (is_uploaded_file($_FILES['le_fichier']['tmp_name'])) {
 				$basenom = basename( $_FILES['le_fichier']['name'] );	// ex image.jpg
 				if ($_FILES['le_fichier']['size'] > $size_max)
-					$content .= '<br />'."Sorry, the file' size exceeds the authorized size." 
+					$content .= '<br />'."Sorry, the file' size exceeds the authorized size."
 									 .' ('.$_FILES['le_fichier']['size'].'octets)';
 				elseif ( !in_array( $_FILES['le_fichier']['type'], $types ) &&	// not in type mime
 						 !stristr( $basenom, $load_extensions ))	// has not the good extension
-					$content .= '<br />'."Sorry, the file type is not in the authorized types list."; 
+					$content .= '<br />'."Sorry, the file type is not in the authorized types list.";
 				elseif ( stristr( $basenom, "php" ) )					// no php string in the name !!
 					$content .= '<br />'."No php file, please.";
 				elseif( !move_uploaded_file( $_FILES['le_fichier']['tmp_name'], "data/".$basenom))
 					$content .= '<br />Transfert error. Do it again !';
-				else	
+				else
 					$content .= '<br />'."The file has been uploaded width the name : data/"
 									 .$basenom.' ('.$_FILES['le_fichier']['size'].'octets)';
 			}
@@ -355,13 +355,13 @@
 	}
 	function doControlName( $chaine ) {	// des noms des pages
     // traitement des slashes et des espaces avant et apres
-		$chaine = trim( stripslashes( $chaine ) );	
+		$chaine = trim( stripslashes( $chaine ) );
     // supprime toutes les balises html
 		$chaine = strip_tags( $chaine );
-    // filtre « .php » dans le nom de la page			
-		$chaine = preg_replace("/(\.php)/i", '_php', $chaine );	
+    // filtre « .php » dans le nom de la page
+		$chaine = preg_replace("/(\.php)/i", '_php', $chaine );
     // filtre « /.:;!?"'(){}[] »
-		$chaine = preg_replace("/([\/\.:;!\?\"\'\(\)\[\]\{\}])/i", '_', $chaine );	
+		$chaine = preg_replace("/([\/\.:;!\?\"\'\(\)\[\]\{\}])/i", '_', $chaine );
 		return $chaine;
 	}
   function doControlPage( $chaine ) {
@@ -374,21 +374,21 @@
 		$chaine = preg_replace("/(<form)/is", 		'NO_form', $chaine );
 		$chaine = preg_replace("/(<\?(php)*)/is", 'NO_php', $chaine );
 
-		// preserve backslashes in page : 
-		$chaine = preg_replace("/\\\/is", 	'&#92;', $chaine ); 
+		// preserve backslashes in page :
+		$chaine = preg_replace("/\\\/is", 	'&#92;', $chaine );
 		// it works after stripslashes(), not before, but I don't know why ??
 		return $chaine;
 	}
 	function date_timezone () { // against PHP5 warning bug in local usage ; called at start
-	 	if(function_exists("date_default_timezone_set") and 
+	 	if(function_exists("date_default_timezone_set") and
        function_exists("date_default_timezone_get"))
 			@date_default_timezone_set(@date_default_timezone_get());
 	}
 	function get_ip() {
-		if(isset($_SERVER['HTTP_X_FORWARDED_FOR'])) 
-			$ip = $_SERVER['HTTP_X_FORWARDED_FOR']; 
+		if(isset($_SERVER['HTTP_X_FORWARDED_FOR']))
+			$ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
 		elseif (isset($_SERVER['HTTP_CLIENT_IP']))
-			$ip = $_SERVER['HTTP_CLIENT_IP']; 
+			$ip = $_SERVER['HTTP_CLIENT_IP'];
 		else
 		 	$ip = $_SERVER['REMOTE_ADDR'];
 		return $ip;
@@ -397,11 +397,11 @@
 		$referer = (isset($_SERVER['HTTP_REFERER']))? $_SERVER['HTTP_REFERER'] : 'undefined';
 		if ($referer != 'undefined') {
 			$temp = parse_url($referer);	// hash array host, path, query
-			$from_host = $temp['host']; 												
-			$from_path = $temp['path'];																						
+			$from_host = $temp['host'];
+			$from_path = $temp['path'];
 			$from_query = (!empty($temp['query']))? $temp['query'] : 'NO_QUERY';
 		}
-		$phpself = $_SERVER['PHP_SELF'];	
+		$phpself = $_SERVER['PHP_SELF'];
 		$IP = get_ip();
 		$date = date("Y/m/d H:i:s", mktime(date("H")));
 		if ($referer != 'undefined')

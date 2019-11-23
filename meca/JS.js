@@ -51,7 +51,7 @@ var LAMBDATALK = (function() {
 
   var eval_specials = function(s,symbol,eval_symbol,flag) {
     while (s !== (s = form_replace(s, symbol, eval_symbol, flag))) ;
-    return s; 
+    return s;
   };
 
   var eval_macros = function(s) {
@@ -62,7 +62,7 @@ var LAMBDATALK = (function() {
   };
 
 //// LAMBDA : {lambda {args} expression}
-  var eval_lambda = function(s) { 
+  var eval_lambda = function(s) {
     s = eval_specials(s,'lambda',eval_lambda);
     var index = s.indexOf("}"),
         argStr = supertrim(s.substring(1, index)),
@@ -85,7 +85,7 @@ var LAMBDATALK = (function() {
           var _vals_ = vals.slice(0,args.length);
           _vals_[args.length-1] = vals.slice(args.length-1,vals.length).join(' ');
           for (var i=0; i < args.length; i++)
-            bod = bod.replace( RegExp(args[i], "g"), _vals_[i] ); 
+            bod = bod.replace( RegExp(args[i], "g"), _vals_[i] );
       }
       bod = eval_specials(bod,'if',eval_if);
       return eval_forms(bod);
@@ -94,7 +94,7 @@ var LAMBDATALK = (function() {
   };
 
 //// DEF : {def name expression}
-  var eval_def = function(s, flag) { 
+  var eval_def = function(s, flag) {
     s = eval_specials(s,'def',eval_def,false);
     var index = s.search(/\s/);
     var name = s.substring(0, index).trim();
@@ -117,11 +117,11 @@ var LAMBDATALK = (function() {
         index2 = s.indexOf( 'else' ),
         bool   = s.substring(0,index1).trim(),
         one    = s.substring(index1+5,index2).trim(),
-        two    = s.substring(index2+5).trim(); 
+        two    = s.substring(index2+5).trim();
     return (eval_forms(bool) === 'true')? one : two
   };
 
-//// LET : (let ( (arg val) ...) body) -> ((lambda (args) body) vals) 
+//// LET : (let ( (arg val) ...) body) -> ((lambda (args) body) vals)
   var eval_let = function(s) {
     s = eval_specials(s,'let',eval_let);
     s = supertrim(s);
@@ -185,24 +185,24 @@ var eval_macro = function(s) {
 //// REQUIRE : {require lib_1 lib_2 ...}
 var LIBS;   // initially undefined
 
-var eval_require = function(s) { 
+var eval_require = function(s) {
   if (LIBS !== undefined) return '';
   var WAIT = "<div style='font-size:2.0em; text-align:center; color:red;'>"
-           + "Loading libraries...</div>"; 
+           + "Loading libraries...</div>";
   LAMBDATANK.display_update( WAIT );
   s = preprocessing( s );
-  var libs = s.split(' ');  
+  var libs = s.split(' ');
   for (var i=0; i < libs.length; i++) {
     var x = new XMLHttpRequest();
     x.open('GET', 'pages/' + libs[i] + '.txt', false);  // false -> lock
-    x.onreadystatechange = function () { 
+    x.onreadystatechange = function () {
       if (x.readyState == 4) {
         console.log( libs[i] + ': ' + x.statusText );
-        if (x.status === 200) 
+        if (x.status === 200)
           LIBS += decodeHtmlEntity( x.responseText )
       }
     };
-    x.send(null);   
+    x.send(null);
   }
   console.log( 'libraries loaded' );
   // now unlocked and return libraries in a hidden container
@@ -236,7 +236,7 @@ var postprocessing = function(s) {
     return s;
 };
 
-//// 5) HELPER FUNCTIONS 
+//// 5) HELPER FUNCTIONS
 
 //// while (s !== (s = form_replace(s, "sym",  eval_sym))) ;
 var form_replace = function(str, symbol, func, flag) {
@@ -278,7 +278,7 @@ var quote = function(s) { // (quote x) -> _QUOT_n
 };
 var unquote = function(s) { // _QUOT_n -> x
     var ss = QUOT[s]; //
-    if (ss === '') return; 
+    if (ss === '') return;
     return ss.charAt(0) !== "_"
       ? ss                                // from (quote x)
       : "{" + ss.substring(1) + "}";      // from '(x)
@@ -305,7 +305,7 @@ var apo2quote = function (s) {  // '{x} -> {quote _x}
   return s.replace(/'\{/g, "{quote _");   //'
 };
 var HTML_macros = function(s) {
-  s += '\n'; // add a CR at the end for "closing" a final alternate form  
+  s += '\n'; // add a CR at the end for "closing" a final alternate form
   s = s.replace( /_h([1-6]) (.*?)\n/g, '{h$1 $2}' )      // titles
        .replace( /_p (.*?)\n/g, '{p $1}' )               // paragraphs
        .replace( /_ul(\w*?) ([^\n]*?)\n/g,               // ul
@@ -322,17 +322,17 @@ var decodeHtmlEntity = function(str) {
   });
 };
 var array_display = function(str) { // _ARRA_xxx -> [a,b,c,d]
-  str = str.replace( /_ARRA_\d+/g, 
+  str = str.replace( /_ARRA_\d+/g,
     function(v) { return eval_forms( '{#.disp ' + v + '}' ) });
   return str;
 };
 var pair_display = function(str) {  // _PAIR_xxx -> ((a b) (c d))
-  str = str.replace( /_PAIR_\d+/g, 
+  str = str.replace( /_PAIR_\d+/g,
     function(v) { return eval_forms( '{pair.disp ' + v + '}' ) });
   return str;
 };
-var syntax_highlight = function( str ) { // highlight {} and special forms 
-  str = str.replace( 
+var syntax_highlight = function( str ) { // highlight {} and special forms
+  str = str.replace(
      /\{(lambda |def |if |let |quote |macro |script |style |macro |require)/g,
      '<span style="color:#f00;">{$1</span>' )
            .replace( /(\{|\})/g, '<span style="color:#888">$1</span>' );
@@ -351,7 +351,7 @@ DICT["lib"] = function() {
     var str = "",
       index = 0;
     for (var key in DICT) {
-      if (DICT.hasOwnProperty(key) 
+      if (DICT.hasOwnProperty(key)
           && key.substring(0, 6) !== "_LAMB_") {
         str += key + ", ";
         index++;
@@ -368,24 +368,24 @@ DICT["equal?"] = function() {
 };
 DICT['empty?'] = function() { // {empty? string}
   var args = supertrim(arguments[0]);
-  return (args === ''); 
+  return (args === '');
 };
 DICT['chars'] = function() { // {chars some text}
   var args = arguments[0].trim();
-  return args.length; 
+  return args.length;
 };
 DICT['charAt'] = function() { // {charAt i some text}
   var args = supertrim(arguments[0]).split(' '), // ["i","some","text"]
       i = args.shift(),
       s = args.join(' ');
-  return s.charAt(parseInt(i)); 
+  return s.charAt(parseInt(i));
 };
 DICT['substring'] = function() { // {substring i0 i1 some text}
   var args = supertrim(arguments[0]).split(' '), // ["i0","i1","some","text"]
       i0 = parseInt(args.shift()),
       i1 = parseInt(args.shift()),
       s  = args.join(' ');
-  return s.substring(i0,i1); 
+  return s.substring(i0,i1);
 };
 DICT['length'] = function () { // {length a b c d}
   var args = supertrim(arguments[0]).split(' '); // [a,b,c,d]
@@ -431,7 +431,7 @@ DICT["localStorage.display"] = function() {
         index++;
       }
     }
-    str = "localStorage: " + index + " items\n[\n" 
+    str = "localStorage: " + index + " items\n[\n"
         + str.substring(0, str.length - 1) + '\n]';
     return str;
 };
@@ -530,24 +530,24 @@ DICT[">="] = function() {
 };
 DICT['='] = function() {      // {= one two}
   var a = supertrim(arguments[0]).split(' '),
-      x = Number(a[0]), 
-      y = Number(a[1]); 
-  return (!(x < y) && !(y < x))? 'true' : 'false';  
+      x = Number(a[0]),
+      y = Number(a[1]);
+  return (!(x < y) && !(y < x))? 'true' : 'false';
 };
 
-DICT['not'] = function () { 
-  var a = supertrim(arguments[0]); 
+DICT['not'] = function () {
+  var a = supertrim(arguments[0]);
   return (a === 'true')? 'false' : 'true';
 };
 DICT['or'] = function () {
-  var terms = supertrim(arguments[0]).split(' '); 
+  var terms = supertrim(arguments[0]).split(' ');
   for (var ret=false, i=0; i< terms.length; i++)
     if (terms[i] === 'true')
       return 'true';
   return ret;
 };
-DICT['and'] = function () { // (and (= 1 1) (= 1 2)) -> false 
-  var terms = supertrim(arguments[0]).split(' '); 
+DICT['and'] = function () { // (and (= 1 1) (= 1 2)) -> false
+  var terms = supertrim(arguments[0]).split(' ');
   for (var ret=true, i=0; i< terms.length; i++)
     if (terms[i] === 'false')
       return 'false';
@@ -567,13 +567,13 @@ DICT["PI"] = function() {
 DICT["E"] = function() {
     return Math.E;
 };
-DICT['date'] = function () { 
+DICT['date'] = function () {
     var now = new Date();
-    var year    = now.getFullYear(), 
-        month   = now.getMonth() + 1, 
+    var year    = now.getFullYear(),
+        month   = now.getMonth() + 1,
         day     = now.getDate(),
-        hours   = now.getHours(), 
-        minutes = now.getMinutes(), 
+        hours   = now.getHours(),
+        minutes = now.getMinutes(),
         seconds = now.getSeconds();
     if (month<10) month = '0' + month;
     if (day<10) day = '0' + day;
@@ -581,7 +581,7 @@ DICT['date'] = function () {
     if (minutes<10) minutes = '0' + minutes;
     if (seconds<10) seconds = '0' + seconds;
     return year+' '+month+' '+day+' '+hours+' '+minutes+' '+seconds;
-};  
+};
 
 ////
 
@@ -591,7 +591,7 @@ DICT['serie'] = function () { // {serie start end [step]}
       end   = parseFloat( args[1] ),
       step  = parseFloat( args[2] || 1),
       str   = '';
-  if (step == 0) return start;  
+  if (step == 0) return start;
   step = Math.abs(step);
   if (start < end)
     for (var i=start; i<=end; i+= step) { str += i + ' '; }
@@ -601,7 +601,7 @@ DICT['serie'] = function () { // {serie start end [step]}
 };
 DICT['map'] = function () { // {map func serie}
   var args = supertrim(arguments[0]).split(' ');
-  var func = args.shift(); 
+  var func = args.shift();
   var str = '';
   if (DICT[func] !== undefined) {
     for (var i=0; i< args.length; i++)
@@ -630,10 +630,10 @@ DICT['#.new'] = function () { // {array.new 12 34 56} -> [12,34,56]
   return name;
 };
 var isARRA = function (z) {
-  return (z !== '' && z.substring(0,6) === '_ARRA_') 
+  return (z !== '' && z.substring(0,6) === '_ARRA_')
 };
 DICT['#.disp'] = function () { // {array.disp z} or {z}
-  var args = arguments[0].trim(), str = ''; 
+  var args = arguments[0].trim(), str = '';
   var rdisp = function( a ) {
     for (var i=0; i<ARRA[a].length; i++) {
       if (isARRA(ARRA[a][i])) {
@@ -732,13 +732,13 @@ DICT['#.set!'] = function () { // {#.set! z i val}
   ARRA[args[0]][args[1]] = args[2];
   return args[0];
 };
-DICT['#.push!'] = 
+DICT['#.push!'] =
 DICT['#.addlast!'] = function () { // {#.push! z val}
   var args = supertrim(arguments[0]).split(' '); // [z,val]
   ARRA[args[0]].push( args[1] );
   return args[0];
 };
-DICT['#.pop!'] = 
+DICT['#.pop!'] =
 DICT['#.sublast!'] = function () { // {#.pop! z}
   var args = arguments[0].trim(); // z
   ARRA[args].pop();
@@ -763,7 +763,7 @@ DICT['#.reverse!'] = function () { // {#.reverse! z}
 };
 DICT['#.sort!'] = function () { // {#.sort! comp z }
   var args = supertrim(arguments[0]).split(' ');
-  if (args[0] === '<') 
+  if (args[0] === '<')
      ARRA[args[1]].sort( function(a,b) { return a - b } );
   else
      ARRA[args[1]].sort( function(a,b) { return b - a } );
@@ -772,7 +772,7 @@ DICT['#.sort!'] = function () { // {#.sort! comp z }
 
 // waiting for: includes indexOf join lastIndexOf toString splice! copyWithin! fill!
 
-//// PAIRS  
+//// PAIRS
 //   use arrays extended with list-like functions
 //   if needed they can be defined as user functions
 
@@ -781,20 +781,20 @@ DICT['pair'] = function () { // {pair 12 34}
   var a = supertrim(arguments[0]).split(' '); // [12,34]
   var name = '_PAIR_' + PAIR_num++;
   PAIR[name] = a;
-  return name; 
+  return name;
 };
 var ispair = function(s) {
-  return (s !== '' && s.substring(0,6) === '_PAIR_') 
+  return (s !== '' && s.substring(0,6) === '_PAIR_')
 };
 DICT['pair?'] = function () { // {pair? xx}
   var a = arguments[0].trim(); // xx
-  //return (ispair(a))? 'left' : 'right'; 
-  return (ispair(a)); 
+  //return (ispair(a))? 'left' : 'right';
+  return (ispair(a));
 };
 DICT['nil?'] = function () { // {nil? xx}
   var a = arguments[0].trim(); // xx
-  //return (a === 'nil')? 'left' : 'right'; 
-  return (a === 'nil'); 
+  //return (a === 'nil')? 'left' : 'right';
+  return (a === 'nil');
 };
 DICT['car'] =           // added for historic reasons
 DICT['list.first'] =    // added for consistance with lists
@@ -806,13 +806,13 @@ DICT['cdr'] =          // added for historic reasons
 DICT['list.rest'] =    // added for consistance with lists
 DICT['right'] =  function () { // {right _PAIR_n}
   var a = arguments[0].trim(); // _PAIR_n
-  return (ispair(a))? PAIR[a][1] : a; 
+  return (ispair(a))? PAIR[a][1] : a;
 };
-DICT['pair.disp'] = function () { 
+DICT['pair.disp'] = function () {
 // {cons {cons 12 34} {cons 56 78}}            -> ((12 34) (56 78))
 // {cons 12 {cons 34 {cons 56 {cons 78 nil}}}} -> (12 (34 (56 (78 nil))))
   var recur = function (z) {
-    return ( ispair(z) )?  
+    return ( ispair(z) )?
        '(' + recur( PAIR[z][0] ) + ' ' + recur( PAIR[z][1] ) + ')' : z;
   };
   var z = arguments[0];
@@ -855,11 +855,11 @@ DICT['list.reverse'] = function () {
 };
 DICT['list.first'] = function () {
   var z = arguments[0];
-  return ( ispair(z) )? PAIR[z][0] : z; 
+  return ( ispair(z) )? PAIR[z][0] : z;
 };
 DICT['list.butfirst'] = function () {
   var z = arguments[0];
-  return ( ispair(z) )? PAIR[z][1] : z; 
+  return ( ispair(z) )? PAIR[z][1] : z;
 };
 DICT['list.last'] = function () {
   var recur = function (z) {
@@ -883,7 +883,7 @@ for (var i=0; i< htmltags.length; i++) {
   DICT[htmltags[i]] = function(tag) {
     return function() {
       var args = arguments[0].trim(); // save spaces for pre
-      var attr = args.match( /@@[\s\S]*?@@/ ); 
+      var attr = args.match( /@@[\s\S]*?@@/ );
       if (attr == null) {
         return '<'+tag+'>'+args+'</'+tag+'>';
       } else {
@@ -892,12 +892,12 @@ for (var i=0; i< htmltags.length; i++) {
         return '<'+tag+' '+attr+'>'+args+'</'+tag+'>';
       }
     }
-  }(htmltags[i]);      
+  }(htmltags[i]);
 }
 
 DICT['input'] = function () {
   // {input {@ type="a_type" value="val" onevent=" quote(JS) "}}
-  var args = arguments[0]; 
+  var args = arguments[0];
   if (args.match( 'http://' )) // try to prevent cross_scripting
     return 'Sorry, external sources are not authorized in inputs!';
   if (args.match( /type\s*=\s*("|')\s*file\s*("|')/ ))
@@ -909,14 +909,14 @@ DICT['input'] = function () {
 };
 DICT['iframe'] = function() { // {iframe {@ src=".." height=".." width=".."}}
   var args = arguments[0];
-  // comment the two following lines to allow external scripts 
+  // comment the two following lines to allow external scripts
   if (args.match( 'http://' )) // against cross_scripting but not https://
     return 'Sorry, external sources are not authorized in iframes!';
-  var attr = args.match( /@@[\s\S]*?@@/ ); 
+  var attr = args.match( /@@[\s\S]*?@@/ );
   if (attr == null)  return 'oops';
   attr = attr[0].replace(/^@@/, '').replace(/@@$/, ''); // clean attr
   return '<iframe ' + attr + ' ></iframe>';
-}; 
+};
 DICT['hide'] = function () { // {hide}
   return eval_forms( 'div {@ style="display:none;"}' );
 };
@@ -941,7 +941,7 @@ DICT['prewrap'] = function () { // {prewrap ...}
 
 })(); // end LAMBDATALK
 
-//// DICT is public and can be populated outside LAMBDATALK. 
+//// DICT is public and can be populated outside LAMBDATALK.
 //// A few examples:
 
 //// 1) TURTLE FOR SVG
@@ -964,7 +964,7 @@ LAMBDATALK.DICT['turtle'] = function () {
         poly.push( [x,y,p[2]] )
       } else {
         var p = poly.pop();
-        poly.push( [p[0],p[1],p[2]+val] ) 
+        poly.push( [p[0],p[1],p[2]+val] )
       }
     }
     for (var pol = '', i=0; i < poly.length; i++)
@@ -980,8 +980,8 @@ LAMBDATALK.DICT['long_add'] = function () {
   var args = LAMBDATALK.supertrim(arguments[0]).split(' '),
          a = args[0].split("").reverse(),
          b = args[1].split("").reverse(),
-         n = Math.max(a.length, b.length), 
-         c = [], 
+         n = Math.max(a.length, b.length),
+         c = [],
          d = 0;
   for (var i=0; i < n; i++) {
     c[i] = (a[i] | 0) + (b[i] | 0) + d;
@@ -991,9 +991,9 @@ LAMBDATALK.DICT['long_add'] = function () {
     } else {
       d = 0;
     }
-  } 
+  }
   if (d === 1) c.push(1);
-  return c.reverse().join('')    
+  return c.reverse().join('')
 };
 
 LAMBDATALK.DICT['long_mult'] = function () {
@@ -1005,31 +1005,31 @@ LAMBDATALK.DICT['long_mult'] = function () {
     for ( var i2 = 0; i2 < b.length; i2++ ) {
       var j = i1 + i2;
       c[j] = a[i1] * b[i2] + (c[j] | 0);
-      if ( c[j] > 9 ) { 
+      if ( c[j] > 9 ) {
         var f = Math.floor( c[j] / 10 );
         c[j] -= f * 10;
         c[j+1] = f + (c[j+1] | 0);
       }
-    }   
+    }
   }
   return c.reverse().join("")
 };
 
 // 3) DRAG is used to move any div via {drag}
-// DRAG is also used to move the wiki's page_view and editor_frame 
+// DRAG is also used to move the wiki's page_view and editor_frame
 
 var DRAG = (function() {
 // CAUTION : div parent must have a defined position, top and left
 // draging editor, view frames and also divs via {drag}
 var beginDrag = function ( elementToDrag, event ) {
   var x, y, ymin = 20;
-  if( window.getComputedStyle ) { 
-    x = parseInt( window.getComputedStyle(elementToDrag,null).left ); 
+  if( window.getComputedStyle ) {
+    x = parseInt( window.getComputedStyle(elementToDrag,null).left );
     y = parseInt( window.getComputedStyle(elementToDrag,null).top );
-  } else if( elementToDrag.currentStyle ) { 
+  } else if( elementToDrag.currentStyle ) {
     x = parseInt( elementToDrag.currentStyle.left );
     y = parseInt( elementToDrag.currentStyle.top );
-  }  
+  }
   var deltaX = event.clientX - x;
   var deltaY = event.clientY - y;
   document.addEventListener( "mousemove", moveHandler, true );
@@ -1039,7 +1039,7 @@ var beginDrag = function ( elementToDrag, event ) {
 
   function moveHandler ( event ) {
     x = event.clientX;
-    y = event.clientY; if (y < ymin) y = ymin;  // top window < ymin  
+    y = event.clientY; if (y < ymin) y = ymin;  // top window < ymin
     elementToDrag.style.left = (x - deltaX) + "px";
     elementToDrag.style.top  = (y - deltaY) + "px";
     event.stopPropagation();
@@ -1068,7 +1068,7 @@ var create = function ( args ) {
   args = args.split(' ');
   var num = args.shift();
   var content = args.join(' ').trim();
-  return '{input {@ id="' 
+  return '{input {@ id="'
   + num + '" class="sectionedit" type="submit" value="edit"'
   + ' style="float:left; margin-left:-45px;"'
   + ' onclick="SECTIONEDIT.section_open(this.id)"}}'
@@ -1079,7 +1079,7 @@ var section_open = function ( id ) {
   oldval =  LAMBDATALK.catch_form( "{editable " + id + " ", code );
   content = document.getElementById(id).nextSibling.innerHTML;
   document.getElementById(id).nextSibling.innerHTML =
-    '<div style="opacity:0.5;">' + content + '</div><textarea id="temp_' + id + '" ' 
+    '<div style="opacity:0.5;">' + content + '</div><textarea id="temp_' + id + '" '
     + 'style="width:99%; height:200px;">' + oldval + '</textarea><br/>'
     + '<input type="submit" value="save" onclick="SECTIONEDIT.section_save(' + id + ')" />'
     + '<input type="submit" value="cancel" onclick="SECTIONEDIT.section_cancel(' + id + ')" />';
@@ -1088,7 +1088,7 @@ var section_open = function ( id ) {
 var section_save = function ( id ) {
   var newval = document.getElementById('temp_'+id).value;
   document.getElementById('page_textarea').value = code.replace( oldval, newval );
-  document.getElementById('save_button').click(); 
+  document.getElementById('save_button').click();
 };
 var section_cancel = function ( id ) {
   document.getElementById(id).nextSibling.innerHTML = content;
@@ -1100,16 +1100,16 @@ var button_edit_disable = function ( flag ) {
     butt[i].disabled = flag;
 };
 
-return { 
-  create:create, 
-  section_open:section_open, 
+return {
+  create:create,
+  section_open:section_open,
   section_save:section_save,
-  section_cancel:section_cancel 
+  section_cancel:section_cancel
 }
 }()); // end of SECTIONEDIT
 
 ///// added as an interface to the LAMBDATALK DICTionary
-LAMBDATALK.DICT['editable'] = function () { 
+LAMBDATALK.DICT['editable'] = function () {
   return SECTIONEDIT.create( arguments[0] );
 };
 
@@ -1118,7 +1118,7 @@ LAMBDATALK.DICT['editable'] = function () {
 ////////////////////////////////////////////////////////////////////
 
 ////  LAMBDATALK can be called in a console
-/* 
+/*
     Use a simple HTML file must contain these three containers:
 1)  <textarea id="page_textarea" onkeyup="display_update()"> </textarea>
 2)  <div id="page_infos"></div>
@@ -1130,8 +1130,8 @@ var display_update = function() {
       code = document.getElementById('page_textarea').value,
       result = LAMBDATALK.evaluate( code ),  // {val,bal}
       time = new Date().getTime() - t0;
-  document.getElementById('page_infos').innerHTML = 
-    '{' + result.bal.left + ':' + result.bal.right  + '} ' + time + 'ms';           
+  document.getElementById('page_infos').innerHTML =
+    '{' + result.bal.left + ':' + result.bal.right  + '} ' + time + 'ms';
   if (result.bal.left === result.bal.right)
      document.getElementById('page_content').innerHTML = result.val ;
 };
@@ -1151,18 +1151,18 @@ var update = function( flag ) {
     TIMEOUT = setTimeout( do_update, DELAY );
   }
 };
-var do_update = function() { 
+var do_update = function() {
   var ID = getId('page_textarea');
   if (ID === null)  {
     console.log( 'page_textarea does not exist' );
-    return; 
+    return;
   }
   var code = ID.value;
   if (code === '') {
      var pagename = get_pagename().split('::');
      var wiki = pagename[0], name = pagename[1];
      name = (name !== '_')? name : 'start';
-     code = ' {p It\'s a new page of "{b ' + wiki 
+     code = ' {p It\'s a new page of "{b ' + wiki
           + '}". Please click on "{b ' + name + '}" and edit.} ';
   }
   display_update( code );
@@ -1171,8 +1171,8 @@ var display_update = function(code) {
   var t0 = new Date().getTime();
   var result = LAMBDATALK.evaluate( code );  // {val,bal}
   var time = new Date().getTime() - t0;
-  getId('page_infos').innerHTML = 
-    '{' + result.bal.left + ':' + result.bal.right  + '} ' + time + 'ms';           
+  getId('page_infos').innerHTML =
+    '{' + result.bal.left + ':' + result.bal.right  + '} ' + time + 'ms';
   if (result.bal.left === result.bal.right)
      getId('page_content').innerHTML = result.val ;
 };
@@ -1184,17 +1184,17 @@ var toggle_lock = function(id) {
    return ''
 };
 var getId = function(id) {
-  return document.getElementById(id); 
+  return document.getElementById(id);
 };
 var toggle_display = function ( id ) {
-  getId(id).style.display = 
+  getId(id).style.display =
     (getId(id).style.display == "block") ? "none" : "block";
 };
 var toggle_visibility = function ( id ) {
   var OK = (getId(id).style.visibility == "visible");
   getId(id).style.visibility = (OK)? "hidden" : "visible";
 };
-var get_pagename = function() {  
+var get_pagename = function() {
   var titre = window.document.title; // LAMBDATALK :: pagename
   return titre.replace(/\s/g,'');    // LAMBDATALK::pagename
 };
