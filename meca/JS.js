@@ -1,6 +1,6 @@
 /*	LAMBDATALK | copyleft_GPL alainmarty 2019 */
 
-//// LAMBDATALK & LAMBDATANK version 2019/05/07
+//// LAMBDATALK & LAMBDATANK version 2019/08/10
 
 "use strict";
 
@@ -341,8 +341,11 @@ var syntax_highlight = function( str ) { // highlight {} and special forms
 
 //// END OF THE LAMBDATALK'S KERNEL
 
+
+
+
 //// 6) START DICTIONARY
-//   can always be populated outside the LAMBDATALK function
+//   The dictionary can always be populated outside the LAMBDATALK function
 
 DICT["lib"] = function() {
     var str = "",
@@ -938,9 +941,10 @@ DICT['prewrap'] = function () { // {prewrap ...}
 
 })(); // end LAMBDATALK
 
-//// DICT is public and can be populated outside LAMBDATALK
+//// DICT is public and can be populated outside LAMBDATALK. 
+//// A few examples:
 
-//// TURTLE FOR SVG
+//// 1) TURTLE FOR SVG
 LAMBDATALK.DICT['turtle'] = function () {
   var draw = function(str) { // {turtle x0 y0 a0 M100 T90 M50 T-45 ...}
     var args = str.split(' ');
@@ -970,30 +974,48 @@ LAMBDATALK.DICT['turtle'] = function () {
   return draw( LAMBDATALK.supertrim(arguments[0]) );
 };
 
-//// BIG NUMBER  https://rosettacode.org/wiki/Long_multiplication#JavaScript
+//// 2) LONG INTEGER
 
-LAMBDATALK.DICT['long_mult'] = function () {
-  var args = LAMBDATALK.supertrim(arguments[0]).split(' ');
-  var n1 = args[0], n2 = args[1];
-  var a1 = n1.split("").reverse();
-  var a2 = n2.split("").reverse();
-  var a3 = [];
-  for ( var i1 = 0; i1 < a1.length; i1++ ) {
-    for ( var i2 = 0; i2 < a2.length; i2++ ) {
-      var id = i1 + i2;
-      var foo = (id >= a3.length)? 0 : a3[id];
-      a3[id] = a1[i1] * a2[i2] + foo;
-      if ( a3[id] > 9 ) {
-        var carry = (id + 1 >= a3.length)? 0 : a3[id + 1];
-        a3[id + 1] = Math.floor( a3[id] / 10 ) + carry;
-        a3[id] -= Math.floor( a3[id] / 10 ) * 10;
-      }
+LAMBDATALK.DICT['long_add'] = function () {
+  var args = LAMBDATALK.supertrim(arguments[0]).split(' '),
+         a = args[0].split("").reverse(),
+         b = args[1].split("").reverse(),
+         n = Math.max(a.length, b.length), 
+         c = [], 
+         d = 0;
+  for (var i=0; i < n; i++) {
+    c[i] = (a[i] | 0) + (b[i] | 0) + d;
+    if (c[i] > 9) {
+      c[i] -= 10;
+      d = 1;
+    } else {
+      d = 0;
     }
-  }
-  return a3.reverse().join("");
+  } 
+  if (d === 1) c.push(1);
+  return c.reverse().join('')    
 };
 
-// DRAG is used to move any div via {drag}
+LAMBDATALK.DICT['long_mult'] = function () {
+  var args = LAMBDATALK.supertrim(arguments[0]).split(' '),
+         a = args[0].split("").reverse(),
+         b = args[1].split("").reverse(),
+         c = [];
+  for ( var i1 = 0; i1 < a.length; i1++ ) {
+    for ( var i2 = 0; i2 < b.length; i2++ ) {
+      var j = i1 + i2;
+      c[j] = a[i1] * b[i2] + (c[j] | 0);
+      if ( c[j] > 9 ) { 
+        var f = Math.floor( c[j] / 10 );
+        c[j] -= f * 10;
+        c[j+1] = f + (c[j+1] | 0);
+      }
+    }   
+  }
+  return c.reverse().join("")
+};
+
+// 3) DRAG is used to move any div via {drag}
 // DRAG is also used to move the wiki's page_view and editor_frame 
 
 var DRAG = (function() {
@@ -1036,6 +1058,63 @@ return { beginDrag:beginDrag, drag:drag }
 
 LAMBDATALK.DICT['drag'] = function () { return DRAG.drag() };
 
+/////  4) SECTIONEDIT  (for retro-compatibility, use block_edit instead)
+var SECTIONEDIT = (function() {
+// CAUTION : due to a LAMBDATALK.catch_form() limit/issue/bug
+// num must be followed by at least one "true" space, not a line return
+var code = '', content = '', oldval = '';
+
+var create = function ( args ) {
+  args = args.split(' ');
+  var num = args.shift();
+  var content = args.join(' ').trim();
+  return '{input {@ id="' 
+  + num + '" class="sectionedit" type="submit" value="edit"'
+  + ' style="float:left; margin-left:-45px;"'
+  + ' onclick="SECTIONEDIT.section_open(this.id)"}}'
+  + '{div {@ style="border:1px dashed #ccc;"}' + content + '}';
+};
+var section_open = function ( id ) {
+  code = document.getElementById('page_textarea').value;
+  oldval =  LAMBDATALK.catch_form( "{editable " + id + " ", code );
+  content = document.getElementById(id).nextSibling.innerHTML;
+  document.getElementById(id).nextSibling.innerHTML =
+    '<div style="opacity:0.5;">' + content + '</div><textarea id="temp_' + id + '" ' 
+    + 'style="width:99%; height:200px;">' + oldval + '</textarea><br/>'
+    + '<input type="submit" value="save" onclick="SECTIONEDIT.section_save(' + id + ')" />'
+    + '<input type="submit" value="cancel" onclick="SECTIONEDIT.section_cancel(' + id + ')" />';
+  button_edit_disable( true );
+};
+var section_save = function ( id ) {
+  var newval = document.getElementById('temp_'+id).value;
+  document.getElementById('page_textarea').value = code.replace( oldval, newval );
+  document.getElementById('save_button').click(); 
+};
+var section_cancel = function ( id ) {
+  document.getElementById(id).nextSibling.innerHTML = content;
+  button_edit_disable( false );
+};
+var button_edit_disable = function ( flag ) {
+  var butt = document.getElementsByClassName( 'sectionedit' );
+  for (var i=0; i < butt.length; i++)
+    butt[i].disabled = flag;
+};
+
+return { 
+  create:create, 
+  section_open:section_open, 
+  section_save:section_save,
+  section_cancel:section_cancel 
+}
+}()); // end of SECTIONEDIT
+
+///// added as an interface to the LAMBDATALK DICTionary
+LAMBDATALK.DICT['editable'] = function () { 
+  return SECTIONEDIT.create( arguments[0] );
+};
+
+//// more to see in http://lambdaway.free.fr/lambdaspeech/
+
 ////////////////////////////////////////////////////////////////////
 
 ////  LAMBDATALK can be called in a console
@@ -1057,7 +1136,7 @@ var display_update = function() {
      document.getElementById('page_content').innerHTML = result.val ;
 };
 
-//// LAMBDATALK can be called in a wiki called LAMBDATANK
+//// LAMBDATALK can be called in the wiki called LAMBDATANK
 
 var LAMBDATANK = (function() {
 

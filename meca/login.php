@@ -1,6 +1,6 @@
 <?php
-//alphawiki/meca/login.php | 20140114 | copyleft_GPL alainmarty
-include "../config.php"; // where $users is defined
+//alphawiki/meca/login.php | 20180725 | copyleft_GPL alainmarty
+include "config.php"; // where $users are defined
 
 session_start();
 main();	

@@ -17,7 +17,6 @@
 //           .     "<script src='meca/JS.js'></script>\n"
 		       .   "</head>\n"
            .   "<body onload='LAMBDATANK.update(true)'>\n"
-//           .   "<body>\n"
 		       .     "<div id='page_frame'>".doContent()."</div>\n"
            .     "<div id='page_foot'><a href='http://lambdaway.free.fr/lambdaspeech/'>".VERSION."</a></div>\n"
            .     "<script src='meca/JS.js'></script>\n"
@@ -52,7 +51,7 @@
       $file_content = doControlPage( file_get_contents(PAGES.$page.'.txt') );
     }
 		$body = "<div class='page_menu' onmousedown='DRAG.beginDrag( this.parentNode, event );'>"
-          .   "<a href='?view=start' title='goto start'>" . TITLE . "</a>"
+          .   "<a href='?view=" . START . "' title='goto start'>" . TITLE . "</a>"  // fixed start -> START on 2019/09/10
           .   "<a href='javascript:LAMBDATANK.toggle_display(\"page_tools\")' title='tools'> :: </a>"
           .   "<a href='javascript:LAMBDATANK.toggle_display(\"page_editor\")' title='open/hide page editor'>" . $page . "</a>"
           .   "<div id='page_tools'>"
