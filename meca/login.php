@@ -55,4 +55,3 @@ function main() {
 	} else
 		display_login_form( '' );
 }
-?>

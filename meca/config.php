@@ -22,5 +22,3 @@ $users = array(
 //  "three" => "four",
 //  "five" => "six"
 );
-
-?>

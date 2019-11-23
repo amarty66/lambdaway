@@ -428,7 +428,7 @@ function connected( $time ) {	// called this way : connected(600)
 				while (!feof($fichier)) {
 					$ligne=fgets($fichier,4096);	// 82.255.57.40  |	1313145032
 					$tab=explode("|",$ligne);
-					if ($tab[1]>0) {
+					if (count($tab) >= 2 && $tab[1]>0) {
 						$tab_de_tab[$i][0]=$tab[0];	// IP 	: 82.255.57.40
 						$tab_de_tab[$i][1]=$tab[1];	// Date	: 1313145032
 						$i++;
@@ -467,6 +467,3 @@ function connected( $time ) {	// called this way : connected(600)
 		}
 		return $ii;
 	}
-
-
-?>
