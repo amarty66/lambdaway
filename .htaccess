@@ -1,0 +1,16 @@
+RewriteEngine On
+RewriteBase /
+
+RewriteRule ^$ "/index.php"
+RewriteRule ^login$ "/meca/login.php"
+RewriteRule ^logout$ "/meca/login.php?logout=please"
+
+RewriteRule ^load$ "index.php?load=please"
+
+RewriteRule ^wiki?$ "/wiki/" [R,L]
+
+RewriteRule ^wiki/$ "/index.php"
+RewriteRule ^wiki/([^/]+)$ "/index.php?view=$1" [QSA]
+
+RewriteRule ^pages/?$ "/index.php?list=*"
+RewriteRule ^wiki/([^/]+)/history$ "/index.php?list=$1" [QSA]

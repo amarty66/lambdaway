@@ -1,0 +1,14 @@
+<h3>Uploading files</h3>
+
+<p>{{description}} {{max_size_human}} kB.</p>
+
+<form enctype="multipart/form-data" action="/load" method="post">
+  <input type="hidden" name="taille_max" value="{{max_size_form}}" />
+  <input type="hidden" name="phase" value="traitement" />
+  <div style="text-align:center; background-color:#fff; border:1px solid;">
+    <input type="file" name="le_fichier" size="35" maxlength="100" title="Locate your file on your hard disk…" />
+  </div>
+  <p>
+    <input type="submit" accesskey="s" value="Upload…" title="Uploading to wiki data folder…" />
+  </p>
+</form>

@@ -11,7 +11,10 @@ services:
       - "lambdaway_data:/var/www/html/data"
       - "lambdaway_pages:/var/www/html/pages"
       - "lambdaway_history:/var/www/html/history"
+      
+      # for DEBUG only:
       - "./meca:/var/www/html/meca"
+      - "./.htaccess:/var/www/html/.htaccess"
 
 volumes:
   lambdaway_data:

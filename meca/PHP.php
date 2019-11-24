@@ -66,12 +66,12 @@ function menu_load () {
 }
 function menu_list () {
    global $g_validUser;
-   return ($g_validUser)? "<a href='?list=*'>pages</a>" : "<span style='color:#ccc;'>list</span>";;
+   return ($g_validUser)? "<a href='/pages'>pages</a>" : "<span style='color:#ccc;'>list</span>";;
 }
 function menu_log () {
    global $g_validUser;
    return ($g_validUser)?
-      '<a href="meca/login.php?logout=true">logout</a>' : '<a href="meca/login.php">login</a>';
+      '<a href="/logout">logout</a>' : '<a href="/login">login</a>';
 }
 function menu_search () {
    return render_template('page_search.html', array());
@@ -124,7 +124,7 @@ function doList() {
 
    $page = doControlName( $_GET['list'] );
    $title = "<div class='page_menu'>"
-      .   "<a href='?view=start' title='goto start'>".WIKI_NAME."</a> :: "
+      .   "<a href='/' title='goto start'>".WIKI_NAME."</a> :: "
          .   (($page == "*")? "list of pages" : "History of ") . $page
             . "</div>";
    $chaine = "<div id='page_content'>";
@@ -278,16 +278,13 @@ function load_file() {
    $load_description = "Types of authorized files : "
       ."jp(e)g, gif, png, pdf, zip, html, odt, ods and size &lt; ";
    $size_max = intval(LOAD_MAX)*1024; // size in bytes
-   $content = '<h3>Uploading files</h3>'
-      .'<p>'.$load_description.LOAD_MAX.' kb.</p><p></p>'
-      .'<form enctype="multipart/form-data" action="" method="post">'
-      .'<input type="hidden" name="taille_max" value="'.($size_max*1024).'" />'
-      .'<input type="hidden" name="phase" value="traitement" />'
-      .'<div style="text-align:center; background-color:#fff; border:1px solid;">'
-      .'<input type="file" name="le_fichier" size="35" maxlength="100" title="'
-      ."Find your file in your hard disc ...".'" /></div>'
-      .'<p><input type="submit" accesskey="s" value="Upload..." title="'
-      ."Uploading to wiki data folder ...".'" /></p></form>';
+   
+   $content = render_template('load_form.html', array(
+      'description' => $load_description,
+      'max_size_human' => LOAD_MAX,
+      'max_size_form' => $size_max*1024
+   ));
+   
    if ( isset($_POST['phase']) && ('traitement' == $_POST['phase']) ) {
       if (is_uploaded_file($_FILES['le_fichier']['tmp_name'])) {
          $basenom = basename( $_FILES['le_fichier']['name'] ); // ex image.jpg

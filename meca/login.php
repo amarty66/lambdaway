@@ -3,9 +3,6 @@
 require "config.php"; // where $users are defined
 require "common.php";
 
-session_start();
-main();
-
 function display_login_form( $comment ){
    echo render_template('login_form.html', array(
       'WIKI_NAME' => WIKI_NAME,
@@ -29,7 +26,7 @@ function main() {
 
    if(isset($_GET['logout'])) { // user logout
       unset($_SESSION[WIKI_NAME]);
-      header("Location: index.php");
+      header("Location: /index.php");
    }
    if (isset($_POST['submit'])) { // form has been submitted
       if (test_user( $_POST['username'], $_POST['password'])) {
@@ -38,10 +35,13 @@ function main() {
             'password' => $_POST['password'],
             'isValidUser' => true
          );
-         header("Location: index.php");
+         header("Location: /index.php");
       } else {
          display_login_form( 'Username or password is invalid.' );
       }
    } else
       display_login_form( '' );
 }
+
+session_start();
+main();
