@@ -139,7 +139,7 @@ function doList() {
 }
 
 function doWiki_pages() {
-   $dir = opendir(getcwd()."/".PAGES);
+   $dir = opendir(PAGES);
    while ($file = readdir($dir)) {
       if (preg_match( "/.txt/", $file) && !preg_match( "/^_/", $file ) ) {
          $tab[] = filemtime(PAGES.$file)."|".$file;
@@ -166,7 +166,7 @@ function doWiki_pages() {
 
 function doHistory_page($page) {
    $chaine = "<a href='javascript:history.back();'>return page list</a> ";
-   $temp = getcwd().'/'.HISTORY.$page;
+   $temp = HISTORY.$page;
    if (is_dir($temp)) {
       $dir = opendir($temp);
       while ($file = readdir($dir)) {
