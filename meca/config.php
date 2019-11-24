@@ -1,25 +1,29 @@
 <?php
-// called by index.php
 
-define ( "WIKI_NAME", "lambdaspeech" ); // name your wiki
-define ( "LOCK",      false ); // true -> the wiki can't be edited
-define ( "START",     "start" ); // homepage: "start", "accueil"
+/// Edit this file to configure the Wiki to your settings.
 
-// currently non available
-define ( "FORUM",     "agora" ); // "forum" and "sandbox" always editable
-define ( "SANDBOX",   "sandbox" ); // name could be "#&§è!çà" for prevent it
-define ( "LOAD_MAX",  "200"); // maximum size of uploadable files
+/// The name/title of this Wiki
+define ( "WIKI_NAME", "lambdaspeech" );
 
-// don't modify
-define ( "VERSION",   "lambdaspeech v.20190318" );
-define ( "TITLE",     WIKI_NAME );
+/// Is this Wiki editable? True=>Cannot be edited
+define ( "LOCK", false );
+
+/// The home/default page of this Wiki
+define ( "START", "start" );
+
+/// Maximum size of uploadable files (in kB)
+define ( "LOAD_MAX",  200);
+
+/// Filepath to the pages directory
 define ( "PAGES",     __DIR__ . "/../pages/" );
+
+/// Filepath to the HTML templates directory
 define ( "TEMPLATES", __DIR__ . "/templates/" );
+
+/// Filepath to the history directory
 define ( "HISTORY",   __DIR__ . "/../history/" );
 
-// password are not crypted
+/// List of users and their passwords (!FIXME)
 $users = array(
    "one" => "two",
-   //  "three" => "four",
-   //  "five" => "six"
 );

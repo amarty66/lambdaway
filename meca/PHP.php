@@ -44,7 +44,7 @@ function doView () {
    
    return render_template('page_view.html', array(
       'START' => START,
-      'TITLE' => TITLE,
+      'TITLE' => WIKI_NAME,
       'PAGE' => $page,
       'CURRENT_USER' => sessionuser(),
       'ACTIVE_USERS' => connected(600),
@@ -79,7 +79,7 @@ function menu_search () {
 }
 function menu_save ( $page ) {
    global $g_validUser;
-   if ($g_validUser || $page == FORUM || $page == SANDBOX )
+   if ($g_validUser)
       return "<input type='submit' id='save_button' style='display:inline-block;' value='save'/>" ;
    else
       return "<input type='submit' id='save_button' style='display:none;' value='save'/>" ;
@@ -94,7 +94,7 @@ function doSave () {
       header( "location: ?view=$page" );  // go home!
       return;
    }
-   if (!$g_validUser && !( $page == FORUM || $page == SANDBOX ) ) {
+   if (!$g_validUser) {
       header( "location: ?view=$page" );  // go home!
       return;
    }
@@ -125,7 +125,7 @@ function doList() {
 
    $page = doControlName( $_GET['list'] );
    $title = "<div class='page_menu'>"
-      .   "<a href='?view=start' title='goto start'>".TITLE."</a> :: "
+      .   "<a href='?view=start' title='goto start'>".WIKI_NAME."</a> :: "
          .   (($page == "*")? "list of pages" : "History of ") . $page
             . "</div>";
    $chaine = "<div id='page_content'>";
@@ -197,7 +197,7 @@ function doBack () {
    $g_view = "<a href='javascript:history.back();'>return page history</a> ";
 
    $title = "<div class='page_menu'>"
-      .   "<a href='?view=start' title='goto start'>".TITLE."</a> :: "
+      .   "<a href='?view=start' title='goto start'>".WIKI_NAME."</a> :: "
       .   (($g_page == "*")? "list of pages" : $g_page)
       . "</div>";
 
@@ -213,7 +213,7 @@ function doBack () {
 function doSearch () {
    $search = doControlName($_GET['search']);
    $title = "<div class='page_menu'>"
-      .   "<a href='?view=start' title='goto start'>".TITLE."</a> :: "
+      .   "<a href='?view=start' title='goto start'>".WIKI_NAME."</a> :: "
          .   "search"
             . "</div>";
    $body = "<a href='javascript:history.back();'>return page</a>"
@@ -261,7 +261,7 @@ function doLoad() {
    $g_view = "<a href='javascript:history.back();'>return page</a>";
 
    $title = "<div class='page_menu'>"
-      . "<a href='?view=start' title='goto start'>".TITLE."</a> :: "
+      . "<a href='?view=start' title='goto start'>".WIKI_NAME."</a> :: "
       . "upload"
       . "</div>";
 
