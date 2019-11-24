@@ -1,6 +1,7 @@
 <?php
 /* lambdaspeech | copyleft_GPL alainmarty 2018 */
 // called by index.php
+require "common.php";
 
 /////////////////////////////////////////////////////////////////////////////
 function doHTML() {

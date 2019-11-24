@@ -1,29 +1,16 @@
 <?php
 //alphawiki/meca/login.php | 20180725 | copyleft_GPL alainmarty
-include "config.php"; // where $users are defined
+require "config.php"; // where $users are defined
+require "common.php";
 
 session_start();
 main();
 
 function display_login_form( $comment ){
-   echo '<!doctype html><html lang=fr><head><meta charset="utf-8" />'
-      . '<title>' . WIKI_NAME . '</title><style>'
-      . '#loginFrame {font:normal 14px "courier new";'
-      . 'width:400px; margin:auto; padding:10px; background:#ffe;'
-      . 'border:1px solid; box-shadow:0 0 8px black; }'
-      . 'a {text-decoration:none; color:#888; text-shadow:2 2 2px black;}'
-      . 'a:hover {color:#f00;}'
-      . '</style></head><body>'
-      . '<div id="loginFrame">'
-      . '<h1> login : ' . WIKI_NAME . '</h1>'
-      . '<form action="login.php" method="post">'
-      . 'username <input type="text" name="username"><br>'
-      . 'password <input type="password" name="password"><br>'
-      . '<input type="submit" name="submit" value="submit">'
-      . '</form>'
-      . '<p>' . $comment . '</p>'
-      . '<a href="index.php">return</a>'
-      . '</div></body></html>';
+   echo render_template('login_form.html', array(
+      'WIKI_NAME' => WIKI_NAME,
+      'comment' => $comment
+   ));
 }
 
 function test_user( $user, $pass ) {
