@@ -120,7 +120,7 @@ function doSave () {
 function doList() {
    global $g_validUser;
    if (LOCK || !$g_validUser)
-      header( "location: index.php" );
+      header( "Location: /" );
 
    $page = doControlName( $_GET['list'] );
    $title = "<div class='page_menu'>"
@@ -253,7 +253,7 @@ function search_result ( $search ) {
 function doLoad() {
    global $g_validUser;
    if (LOCK || !$g_validUser)
-      header( "location: index.php" );
+      header( "Location: /" );
 
    global $g_view; // is computed by this function
    doLogs( 'load' );

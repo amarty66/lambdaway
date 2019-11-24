@@ -14,3 +14,6 @@ RewriteRule ^wiki/([^/]+)$ "/index.php?view=$1" [QSA]
 
 RewriteRule ^pages/?$ "/index.php?list=*"
 RewriteRule ^wiki/([^/]+)/history$ "/index.php?list=$1" [QSA]
+
+#RewriteRule ^meca/.* - [F,L]
+RewriteRule ^data/.* - [F,L]
