@@ -1,5 +1,5 @@
 <?php
 session_start();
-include "meca/config.php";
-include "meca/PHP.php";
+require "meca/config.php";
+require "meca/PHP.php";
 doHTML();

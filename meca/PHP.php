@@ -90,11 +90,11 @@ function doSave () {
    doLogs( 'save' );
    $content = doControlPage( $_POST['content'] );
    if (!preg_match('/^(°|;|_|\{|\/|#)/', $content)) {
-      header( "location: ?view=$page" );  // go home!
+      header( "Location: /wiki/$page" );  // go home!
       return;
    }
    if (!$g_validUser) {
-      header( "location: ?view=$page" );  // go home!
+      header( "Location: /wiki/$page" );  // go home!
       return;
    }
    if ($handle = fopen(PAGES.$page.'.txt', 'w')) {
@@ -114,7 +114,7 @@ function doSave () {
       fwrite($p_mybackup, $head.$content);
       fclose($p_mybackup);
    }
-   header( "location: ?view=$page" );
+   header( "Location: /wiki/$page" );  // go home!
 }
 
 function doList() {
@@ -296,10 +296,10 @@ function load_file() {
                $content .= '<br />'."Sorry, the file type is not in the authorized types list.";
          elseif ( stristr( $basenom, "php" ) ) // no php string in the name !!
             $content .= '<br />'."No php file, please.";
-         elseif( !move_uploaded_file( $_FILES['le_fichier']['tmp_name'], "data/".$basenom))
+         elseif( !move_uploaded_file( $_FILES['le_fichier']['tmp_name'], "data/assets/".$basenom))
             $content .= '<br />Transfert error. Do it again !';
          else
-            $content .= '<br />'."The file has been uploaded width the name : data/"
+            $content .= '<br />'."The file has been uploaded width the name : data/assets"
                .$basenom.' ('.$_FILES['le_fichier']['size'].'octets)';
       }
       else

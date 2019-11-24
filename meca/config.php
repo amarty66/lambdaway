@@ -15,13 +15,13 @@ define ( "START", "start" );
 define ( "LOAD_MAX",  200);
 
 /// Filepath to the pages directory
-define ( "PAGES",     __DIR__ . "/../pages/" );
+define ( "PAGES",     __DIR__ . "/../data/pages/" );
 
 /// Filepath to the HTML templates directory
 define ( "TEMPLATES", __DIR__ . "/templates/" );
 
 /// Filepath to the history directory
-define ( "HISTORY",   __DIR__ . "/../history/" );
+define ( "HISTORY",   __DIR__ . "/../data/history/" );
 
 /// Filepath to the connections directory
 define ( "CONNECTION_LOG", "/var/log/lambdaway.connections.log" );
