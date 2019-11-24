@@ -11,8 +11,7 @@ function doHTML() {
    
    echo render_template('page.html', array(
       'TITLE' => doTitle(),
-      'CONTENT' => doContent(),
-      'VERSION' => VERSION
+      'CONTENT' => doContent()
    ));
 }
 /////////////////////////////////////////////////////////////////////////////
