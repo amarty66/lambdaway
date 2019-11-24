@@ -9,4 +9,12 @@
 
 {lambda tank} is a dynamic Web site in PHP/HTML/JavaScript which provides a Wiki infrastructure using {lambda talk} as its markup language. The current implementation relies on the filesystem instead of a database, and users are configures in the `meca/config.php` file.
 
+The project files are organised as follows:
+
+  - `.htaccess`: contains the URL redirection logic for pretty URLs
+  - `data`: user generated content (pages, history, uploaded assets, …)
+  - `meca`: the PHP sources for {lambda tank}
+  - `meca/templates`: HTML templates used by PHP to generate the Web pages
+  - `static`: publicly accessible CSS and JS files
+
 Much more info and details available at Alain Marty's homepage: http://lambdaway.free.fr/lambdaspeech/
