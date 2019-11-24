@@ -23,6 +23,9 @@ define ( "TEMPLATES", __DIR__ . "/templates/" );
 /// Filepath to the history directory
 define ( "HISTORY",   __DIR__ . "/../history/" );
 
+/// Filepath to the connections directory
+define ( "CONNECTION_LOG", "/var/log/lambdaway.connections.log" );
+
 /// List of users and their passwords (!FIXME)
 $users = array(
    "one" => "two",

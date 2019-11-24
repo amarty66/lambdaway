@@ -394,7 +394,7 @@ function connected( $time ) { // called this way : connected(600)
    $i=0;
    $ii=0;
    $bool=0;
-   $filename="meca/_connected.txt";
+   $filename=CONNECTION_LOG;
    if ( file_exists($filename) ) {
       if ($fichier=fopen($filename,"r")) {
          while (!feof($fichier)) {
