@@ -23,7 +23,7 @@ function doTitle() {
 }
 function doContent() {
    if (isset($_GET['save']) &&
-      isset($_POST['content']) && !LOCK )  return doSave();
+      isset($_POST['content']) && !LOCK )   return doSave();
    else if (isset($_GET['list']))           return doList();
    else if (isset($_GET['search']))         return doSearch();
    else if (isset($_GET['back']))           return doBack();
