@@ -8,22 +8,12 @@ function doHTML() {
    global $g_validUser;
    $g_validUser = isValidUser();
    date_timezone ();
-   $html  = "<!doctype html>\n"
-      . "<html lang=fr>\n"
-      .   "<head>\n"
-      .     "<meta charset='utf-8' />\n"
-      .     "<meta name='Author' content='alain marty ©2018' />\n"
-      .     "<title>".doTitle()."</title>\n"
-      .     "<link href='meca/CSS.css' type='text/css' rel='stylesheet' />\n"
-//      .     "<script src='meca/JS.js'></script>\n"
-      .   "</head>\n"
-      .   "<body onload='LAMBDATANK.update(true)'>\n"
-      .     "<div id='page_frame'>".doContent()."</div>\n"
-      .     "<div id='page_foot'><a href='http://lambdaway.free.fr/lambdaspeech/'>".VERSION."</a></div>\n"
-      .     "<script src='meca/JS.js'></script>\n"
-      .   "</body>\n"
-      . "</html>";
-   echo $html;
+   
+   echo render_template('page.html', array(
+      'TITLE' => doTitle(),
+      'CONTENT' => doContent(),
+      'VERSION' => VERSION
+   ));
 }
 /////////////////////////////////////////////////////////////////////////////
 function doTitle() {
@@ -51,35 +41,21 @@ function doView () {
    if (file_exists(PAGES.$page.'.txt')) {
       $file_content = doControlPage( file_get_contents(PAGES.$page.'.txt') );
    }
-   $body = "<div class='page_menu' onmousedown='DRAG.beginDrag( this.parentNode, event );'>"
-      .   "<a href='?view=" . START . "' title='goto start'>" . TITLE . "</a>" // fixed start -> START on 2019/09/10
-      .   "<a href='javascript:LAMBDATANK.toggle_display(\"page_tools\")' title='tools'> :: </a>"
-      .   "<a href='javascript:LAMBDATANK.toggle_display(\"page_editor\")' title='open/hide page editor'>" . $page . "</a>"
-      .   "<div id='page_tools'>"
-      .        "<span title='user logged'>" . sessionuser() . "</span> "
-      .        "<span title='people connected'>" . connected(600) . "</span> | "
-      .        "<span title='list wiki pages'>" . menu_list() . "</span> | "
-      .        "<span title='login/logout'>" . menu_log() . "</span> |"
-      .        "<span title='load'>" . menu_load() . "</span><br />"
-      .        "<span title='search'>" . menu_search() . "</span> "
-      .   "</div>"
-      . "</div>"
-      . "<div style='position:absolute; top:0; left:0;'>" // used by DRAG
-      .  "<div id='page_editor' style='display:none;'>"
-      .   "<form action='?save=$page' method='post' enctype='multipart/form-data'>"
-      .      "<div class='page_menu' onmousedown='DRAG.beginDrag( this.parentNode.parentNode, event );'>"
-      .        "<span title='save & publish'>" . menu_save($page) . "</span> | "
-      .        "<span id='page_infos' title='balance & time'></span> | "
-      .        "<span title='save & publish'>" . menu_lock() . "</span>"
-      .      "</div>"
-      .      "<textarea id='page_textarea' name='content' onkeyup='LAMBDATANK.update()' placeHolder='Please, edit...'>\n"
-      .        $file_content
-      .      "</textarea>\n"
-      .   "</form>\n"
-      .  "</div>\n"
-      . "</div>\n"
-      . "<div id='page_content'></div>";
-   return $body;
+   
+   return render_template('page_view.html', array(
+      'START' => START,
+      'TITLE' => TITLE,
+      'PAGE' => $page,
+      'CURRENT_USER' => sessionuser(),
+      'ACTIVE_USERS' => connected(600),
+      'MENU_LIST' => menu_list(),
+      'MENU_LOGIN' => menu_log(),
+      'MENU_LOAD' => menu_load(),
+      'MENU_SEARCH' => menu_search(),
+      'MENU_SAVE' => menu_save($page),
+      'MENU_LOCK' => menu_lock(),
+      'SOURCE' => $file_content
+   ));
 }
 
 function menu_lock () {
@@ -99,11 +75,7 @@ function menu_log () {
       '<a href="meca/login.php?logout=true">logout</a>' : '<a href="meca/login.php">login</a>';
 }
 function menu_search () {
-   $q = "<form style='display:inline;' method='get' action='index.php'>\n"
-      .   "<input type='text' id='search' name='search' placeHolder='@¿@' "
-      .   "title='Search in the wiki...' style='text-align:center;' onClick='this.select()'/>"
-      . "</form> ";
-   return $q;
+   return render_template('page_search.html', array());
 }
 function menu_save ( $page ) {
    global $g_validUser;
