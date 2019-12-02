@@ -1,28 +1,18 @@
 <?php
 /* lambdaspeech | copyleft_GPL alainmarty 2018 */
 // called by index.php
+require "common.php";
 
 /////////////////////////////////////////////////////////////////////////////
 function doHTML() {
    global $g_validUser;
    $g_validUser = isValidUser();
    date_timezone ();
-   $html  = "<!doctype html>\n"
-      . "<html lang=fr>\n"
-      .   "<head>\n"
-      .     "<meta charset='utf-8' />\n"
-      .     "<meta name='Author' content='alain marty ©2018' />\n"
-      .     "<title>".doTitle()."</title>\n"
-      .     "<link href='meca/CSS.css' type='text/css' rel='stylesheet' />\n"
-//      .     "<script src='meca/JS.js'></script>\n"
-      .   "</head>\n"
-      .   "<body onload='LAMBDATANK.update(true)'>\n"
-      .     "<div id='page_frame'>".doContent()."</div>\n"
-      .     "<div id='page_foot'><a href='http://lambdaway.free.fr/lambdaspeech/'>".VERSION."</a></div>\n"
-      .     "<script src='meca/JS.js'></script>\n"
-      .   "</body>\n"
-      . "</html>";
-   echo $html;
+   
+   echo render_template('page.html', array(
+      'TITLE' => doTitle(),
+      'CONTENT' => doContent()
+   ));
 }
 /////////////////////////////////////////////////////////////////////////////
 function doTitle() {
@@ -33,7 +23,7 @@ function doTitle() {
 }
 function doContent() {
    if (isset($_GET['save']) &&
-      isset($_POST['content']) && !LOCK )  return doSave();
+      isset($_POST['content']) && !LOCK )   return doSave();
    else if (isset($_GET['list']))           return doList();
    else if (isset($_GET['search']))         return doSearch();
    else if (isset($_GET['back']))           return doBack();
@@ -50,35 +40,21 @@ function doView () {
    if (file_exists(PAGES.$page.'.txt')) {
       $file_content = doControlPage( file_get_contents(PAGES.$page.'.txt') );
    }
-   $body = "<div class='page_menu' onmousedown='DRAG.beginDrag( this.parentNode, event );'>"
-      .   "<a href='?view=" . START . "' title='goto start'>" . TITLE . "</a>" // fixed start -> START on 2019/09/10
-      .   "<a href='javascript:LAMBDATANK.toggle_display(\"page_tools\")' title='tools'> :: </a>"
-      .   "<a href='javascript:LAMBDATANK.toggle_display(\"page_editor\")' title='open/hide page editor'>" . $page . "</a>"
-      .   "<div id='page_tools'>"
-      .        "<span title='user logged'>" . sessionuser() . "</span> "
-      .        "<span title='people connected'>" . connected(600) . "</span> | "
-      .        "<span title='list wiki pages'>" . menu_list() . "</span> | "
-      .        "<span title='login/logout'>" . menu_log() . "</span> |"
-      .        "<span title='load'>" . menu_load() . "</span><br />"
-      .        "<span title='search'>" . menu_search() . "</span> "
-      .   "</div>"
-      . "</div>"
-      . "<div style='position:absolute; top:0; left:0;'>" // used by DRAG
-      .  "<div id='page_editor' style='display:none;'>"
-      .   "<form action='?save=$page' method='post' enctype='multipart/form-data'>"
-      .      "<div class='page_menu' onmousedown='DRAG.beginDrag( this.parentNode.parentNode, event );'>"
-      .        "<span title='save & publish'>" . menu_save($page) . "</span> | "
-      .        "<span id='page_infos' title='balance & time'></span> | "
-      .        "<span title='save & publish'>" . menu_lock() . "</span>"
-      .      "</div>"
-      .      "<textarea id='page_textarea' name='content' onkeyup='LAMBDATANK.update()' placeHolder='Please, edit...'>\n"
-      .        $file_content
-      .      "</textarea>\n"
-      .   "</form>\n"
-      .  "</div>\n"
-      . "</div>\n"
-      . "<div id='page_content'></div>";
-   return $body;
+   
+   return render_template('page_view.html', array(
+      'START' => START,
+      'TITLE' => WIKI_NAME,
+      'PAGE' => $page,
+      'CURRENT_USER' => sessionuser(),
+      'ACTIVE_USERS' => connected(600),
+      'MENU_LIST' => menu_list(),
+      'MENU_LOGIN' => menu_log(),
+      'MENU_LOAD' => menu_load(),
+      'MENU_SEARCH' => menu_search(),
+      'MENU_SAVE' => menu_save($page),
+      'MENU_LOCK' => menu_lock(),
+      'SOURCE' => $file_content
+   ));
 }
 
 function menu_lock () {
@@ -90,23 +66,19 @@ function menu_load () {
 }
 function menu_list () {
    global $g_validUser;
-   return ($g_validUser)? "<a href='?list=*'>pages</a>" : "<span style='color:#ccc;'>list</span>";;
+   return ($g_validUser)? "<a href='/pages'>pages</a>" : "<span style='color:#ccc;'>list</span>";;
 }
 function menu_log () {
    global $g_validUser;
    return ($g_validUser)?
-      '<a href="meca/login.php?logout=true">logout</a>' : '<a href="meca/login.php">login</a>';
+      '<a href="/logout">logout</a>' : '<a href="/login">login</a>';
 }
 function menu_search () {
-   $q = "<form style='display:inline;' method='get' action='index.php'>\n"
-      .   "<input type='text' id='search' name='search' placeHolder='@¿@' "
-      .   "title='Search in the wiki...' style='text-align:center;' onClick='this.select()'/>"
-      . "</form> ";
-   return $q;
+   return render_template('page_search.html', array());
 }
 function menu_save ( $page ) {
    global $g_validUser;
-   if ($g_validUser || $page == FORUM || $page == SANDBOX )
+   if ($g_validUser)
       return "<input type='submit' id='save_button' style='display:inline-block;' value='save'/>" ;
    else
       return "<input type='submit' id='save_button' style='display:none;' value='save'/>" ;
@@ -118,11 +90,11 @@ function doSave () {
    doLogs( 'save' );
    $content = doControlPage( $_POST['content'] );
    if (!preg_match('/^(°|;|_|\{|\/|#)/', $content)) {
-      header( "location: ?view=$page" );  // go home!
+      header( "Location: /wiki/$page" );  // go home!
       return;
    }
-   if (!$g_validUser && !( $page == FORUM || $page == SANDBOX ) ) {
-      header( "location: ?view=$page" );  // go home!
+   if (!$g_validUser) {
+      header( "Location: /wiki/$page" );  // go home!
       return;
    }
    if ($handle = fopen(PAGES.$page.'.txt', 'w')) {
@@ -142,17 +114,17 @@ function doSave () {
       fwrite($p_mybackup, $head.$content);
       fclose($p_mybackup);
    }
-   header( "location: ?view=$page" );
+   header( "Location: /wiki/$page" );  // go home!
 }
 
 function doList() {
    global $g_validUser;
    if (LOCK || !$g_validUser)
-      header( "location: index.php" );
+      header( "Location: /" );
 
    $page = doControlName( $_GET['list'] );
    $title = "<div class='page_menu'>"
-      .   "<a href='?view=start' title='goto start'>".TITLE."</a> :: "
+      .   "<a href='/' title='goto start'>".WIKI_NAME."</a> :: "
          .   (($page == "*")? "list of pages" : "History of ") . $page
             . "</div>";
    $chaine = "<div id='page_content'>";
@@ -167,7 +139,7 @@ function doList() {
 }
 
 function doWiki_pages() {
-   $dir = opendir(getcwd()."/".PAGES);
+   $dir = opendir(PAGES);
    while ($file = readdir($dir)) {
       if (preg_match( "/.txt/", $file) && !preg_match( "/^_/", $file ) ) {
          $tab[] = filemtime(PAGES.$file)."|".$file;
@@ -194,7 +166,7 @@ function doWiki_pages() {
 
 function doHistory_page($page) {
    $chaine = "<a href='javascript:history.back();'>return page list</a> ";
-   $temp = getcwd().'/'.HISTORY.$page;
+   $temp = HISTORY.$page;
    if (is_dir($temp)) {
       $dir = opendir($temp);
       while ($file = readdir($dir)) {
@@ -224,7 +196,7 @@ function doBack () {
    $g_view = "<a href='javascript:history.back();'>return page history</a> ";
 
    $title = "<div class='page_menu'>"
-      .   "<a href='?view=start' title='goto start'>".TITLE."</a> :: "
+      .   "<a href='?view=start' title='goto start'>".WIKI_NAME."</a> :: "
       .   (($g_page == "*")? "list of pages" : $g_page)
       . "</div>";
 
@@ -240,7 +212,7 @@ function doBack () {
 function doSearch () {
    $search = doControlName($_GET['search']);
    $title = "<div class='page_menu'>"
-      .   "<a href='?view=start' title='goto start'>".TITLE."</a> :: "
+      .   "<a href='?view=start' title='goto start'>".WIKI_NAME."</a> :: "
          .   "search"
             . "</div>";
    $body = "<a href='javascript:history.back();'>return page</a>"
@@ -281,14 +253,14 @@ function search_result ( $search ) {
 function doLoad() {
    global $g_validUser;
    if (LOCK || !$g_validUser)
-      header( "location: index.php" );
+      header( "Location: /" );
 
    global $g_view; // is computed by this function
    doLogs( 'load' );
    $g_view = "<a href='javascript:history.back();'>return page</a>";
 
    $title = "<div class='page_menu'>"
-      . "<a href='?view=start' title='goto start'>".TITLE."</a> :: "
+      . "<a href='?view=start' title='goto start'>".WIKI_NAME."</a> :: "
       . "upload"
       . "</div>";
 
@@ -306,16 +278,13 @@ function load_file() {
    $load_description = "Types of authorized files : "
       ."jp(e)g, gif, png, pdf, zip, html, odt, ods and size &lt; ";
    $size_max = intval(LOAD_MAX)*1024; // size in bytes
-   $content = '<h3>Uploading files</h3>'
-      .'<p>'.$load_description.LOAD_MAX.' kb.</p><p></p>'
-      .'<form enctype="multipart/form-data" action="" method="post">'
-      .'<input type="hidden" name="taille_max" value="'.($size_max*1024).'" />'
-      .'<input type="hidden" name="phase" value="traitement" />'
-      .'<div style="text-align:center; background-color:#fff; border:1px solid;">'
-      .'<input type="file" name="le_fichier" size="35" maxlength="100" title="'
-      ."Find your file in your hard disc ...".'" /></div>'
-      .'<p><input type="submit" accesskey="s" value="Upload..." title="'
-      ."Uploading to wiki data folder ...".'" /></p></form>';
+   
+   $content = render_template('load_form.html', array(
+      'description' => $load_description,
+      'max_size_human' => LOAD_MAX,
+      'max_size_form' => $size_max*1024
+   ));
+   
    if ( isset($_POST['phase']) && ('traitement' == $_POST['phase']) ) {
       if (is_uploaded_file($_FILES['le_fichier']['tmp_name'])) {
          $basenom = basename( $_FILES['le_fichier']['name'] ); // ex image.jpg
@@ -327,10 +296,10 @@ function load_file() {
                $content .= '<br />'."Sorry, the file type is not in the authorized types list.";
          elseif ( stristr( $basenom, "php" ) ) // no php string in the name !!
             $content .= '<br />'."No php file, please.";
-         elseif( !move_uploaded_file( $_FILES['le_fichier']['tmp_name'], "data/".$basenom))
+         elseif( !move_uploaded_file( $_FILES['le_fichier']['tmp_name'], "data/assets/".$basenom))
             $content .= '<br />Transfert error. Do it again !';
          else
-            $content .= '<br />'."The file has been uploaded width the name : data/"
+            $content .= '<br />'."The file has been uploaded width the name : data/assets"
                .$basenom.' ('.$_FILES['le_fichier']['size'].'octets)';
       }
       else
@@ -422,7 +391,7 @@ function connected( $time ) { // called this way : connected(600)
    $i=0;
    $ii=0;
    $bool=0;
-   $filename="meca/_connected.txt";
+   $filename=CONNECTION_LOG;
    if ( file_exists($filename) ) {
       if ($fichier=fopen($filename,"r")) {
          while (!feof($fichier)) {

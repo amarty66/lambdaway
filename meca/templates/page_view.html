@@ -1,0 +1,28 @@
+<div class="page_menu" onmousedown="DRAG.beginDrag( this.parentNode, event );">
+  <a href="/" title="goto start">{{TITLE}}</a>
+  <a href="javascript:LAMBDATANK.toggle_display('page_tools')" title="tools"> :: </a>
+  <a href="javascript:LAMBDATANK.toggle_display('page_editor')" title="open/hide page editor">{{PAGE}}</a>
+  <div id="page_tools">
+    <span title="user logged">{{CURRENT_USER}}</span> 
+    <span title="people connected">{{ACTIVE_USERS}}</span> | 
+    <span title="list wiki pages">{{MENU_LIST}}</span> | 
+    <span title="login/logout">{{MENU_LOGIN}}</span> |
+    <span title="load">{{MENU_LOAD}}</span><br />
+    <span title="search">{{MENU_SEARCH}}</span> 
+  </div>
+</div>
+<div style="position:absolute; top:0; left:0;">
+  <div id="page_editor" style="display:none;">
+    <form action="?save={{PAGE}}" method="post" enctype="multipart/form-data">
+      <div class="page_menu" onmousedown="DRAG.beginDrag( this.parentNode.parentNode, event );">
+        <span title="save & publish">{{MENU_SAVE}}</span> | 
+        <span id="page_infos" title="balance & time"></span> | 
+        <span title="save & publish">{{MENU_LOCK}}</span>
+      </div>
+      <textarea id="page_textarea" name="content" onkeyup="LAMBDATANK.update()" placeHolder="Please, edit...">
+        {{SOURCE}}
+      </textarea>
+    </form>
+  </div>
+</div>
+<div id="page_content"></div>
