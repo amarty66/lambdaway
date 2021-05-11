@@ -1,3 +1,6 @@
+**This repository is no longer explored and has therefore been archived. A different project involving lambdatalk is underway and deriving from a more recent work by Alain Marty.**
+
+
 # lambdaway
 
 {lambda way} is a project by Alain Marty with two parts:
