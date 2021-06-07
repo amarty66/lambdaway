@@ -1,5 +1,5 @@
-<?php 
-	include "config.php";
-	include "meca/PHP.php";
-	doHTML();
-?>
+<?php
+session_start();
+require "meca/config.php";
+require "meca/PHP.php";
+doHTML();

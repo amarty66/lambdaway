@@ -1,26 +1,32 @@
 <?php
-// called by index.php
 
-define ( "WIKI_NAME",      "lambdaspeech" );  // replace « lambdaspeech » by any name you want
-define ( "LOCK", 			     false ); 					// false -> the wiki can't be edited
-// define ( "WITH_PASSWORDS", false );			      // true -> a controlled set of editors
-define ( "START",			     "start" );				  // "start", "accueil"
+/// Edit this file to configure the Wiki to your settings.
 
-// currently non available
-define ( "FORUM",			     "agora" );				  // "forum" and "sandbox" always editable
-define ( "SANDBOX",		     "sandbox" );			  // name could be "#&§è!çà" for prevent it
-define ( "LOAD_MAX", 	     "200");						// maximum size of uploadable files
+/// The name/title of this Wiki
+define ( "WIKI_NAME", "lambdaspeech" );
 
-// don't modify 
-define ( "VERSION", "lambdaspeech v.20190507" ); 
-define ( "TITLE", WIKI_NAME );
-define ( "PAGES", "pages/" ); 
-define ( "HISTORY", "history/" );
+/// Is this Wiki editable? True=>Cannot be edited
+define ( "LOCK", false );
 
-// currently non available
+/// The home/default page of this Wiki
+define ( "START", "start" );
+
+/// Maximum size of uploadable files (in kB)
+define ( "LOAD_MAX",  200);
+
+/// Filepath to the pages directory
+define ( "PAGES",     __DIR__ . "/../data/pages/" );
+
+/// Filepath to the HTML templates directory
+define ( "TEMPLATES", __DIR__ . "/templates/" );
+
+/// Filepath to the history directory
+define ( "HISTORY",   __DIR__ . "/../data/history/" );
+
+/// Filepath to the connections directory
+define ( "CONNECTION_LOG", "/var/log/lambdaway.connections.log" );
+
+/// List of users and their passwords (!FIXME)
 $users = array(
-	"login1" => "password1",         // password are not crypted 
-  "login2" => "password2"
+   "one" => "two",
 );
-
-?>

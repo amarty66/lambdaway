@@ -1,0 +1,6 @@
+.git/
+.DS_Store
+.gitignore
+docker-compose.yml
+Dockerfile
+/README.md

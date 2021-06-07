@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    image: lambdaway
+    restart: always
+    ports:
+      - 80:80
+    volumes:
+      - "lambdaway:/var/www/html/data"
+      
+      # for DEBUG only:
+      - ".:/var/www/html"
+
+volumes:
+  lambdaway:
